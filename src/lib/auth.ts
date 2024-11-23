@@ -1,12 +1,24 @@
 import { QueryData } from '@supabase/supabase-js'
 
 import NextAuth from 'next-auth'
+import type { Provider } from 'next-auth/providers'
 import Google from 'next-auth/providers/google'
 
 import { createClient } from '@/lib/supabase/server'
 
+const providers: Provider[] = [Google]
+
+export const providersMap = providers.map((provider) => {
+  if (typeof provider === 'function') {
+    const providerData = provider()
+    return { id: providerData.id, name: providerData.name }
+  } else {
+    return { id: provider.id, name: provider.name }
+  }
+})
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  providers: [Google],
+  providers,
   callbacks: {
     async signIn({ user }) {
       const email = user?.email
@@ -32,6 +44,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async authorized({ auth }) {
       return !!auth?.user
     }
+  },
+  pages: {
+    signIn: '/auth/signin'
   }
 })
 
