@@ -19,6 +19,7 @@ export default async function SignInPage(props: {
   searchParams: SearchParams
 }) {
   const searchParams = await props.searchParams
+  console.dir(searchParams, { depth: null })
   const error = searchParams?.error as string
 
   return (
@@ -50,9 +51,21 @@ export default async function SignInPage(props: {
                   'use server'
                   try {
                     await signIn(provider.id, {
-                      redirectTo: searchParams?.callbackUrl as string
+                      redirectTo: Array.isArray(searchParams?.callbackUrl)
+                        ? searchParams.callbackUrl[0]
+                        : searchParams?.callbackUrl ?? ''
                     })
-                  } catch (error) {
+                  } catch (error: unknown) {
+                    // Ignore NEXT_REDIRECT errors as they are part of the normal OAuth flow
+                    if (
+                      (error as { digest?: string })?.digest?.includes(
+                        'NEXT_REDIRECT'
+                      )
+                    ) {
+                      throw error // Let Next.js handle the redirect
+                    }
+
+                    console.error(error)
                     const newSearchParams = new URLSearchParams()
                     if (error instanceof AuthError) {
                       newSearchParams.set('error', error.type)
@@ -62,10 +75,12 @@ export default async function SignInPage(props: {
                     if (searchParams?.callbackUrl) {
                       newSearchParams.set(
                         'callbackUrl',
-                        searchParams.callbackUrl as string
+                        Array.isArray(searchParams.callbackUrl)
+                          ? searchParams.callbackUrl[0]
+                          : searchParams.callbackUrl
                       )
                     }
-                    redirect(`/auth/signin?${searchParams.toString()}`)
+                    redirect(`/auth/signin?${newSearchParams.toString()}`)
                   }
                 }}
               >
