@@ -19,7 +19,6 @@ export default async function SignInPage(props: {
   searchParams: SearchParams
 }) {
   const searchParams = await props.searchParams
-  console.dir(searchParams, { depth: null })
   const error = searchParams?.error as string
 
   return (
