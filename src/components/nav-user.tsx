@@ -9,6 +9,7 @@ import {
   Sparkles
 } from 'lucide-react'
 
+import { logout } from '@/actions/auth'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   DropdownMenu,
@@ -99,8 +100,15 @@ export function NavUser({
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem>
-              <LogOut />
-              Log out
+              <button
+                onClick={async () => {
+                  await logout()
+                }}
+                className="flex cursor-pointer items-center gap-2 px-1.5 py-1.5 text-left text-sm"
+              >
+                <LogOut size={16} />
+                Log out
+              </button>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
