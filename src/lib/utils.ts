@@ -11,3 +11,18 @@ export function getInitials(name: string) {
     .map((word) => word[0])
     .join('')
 }
+
+export function getBackgroundColorOfEnvironment() {
+  const environment = process.env.NEXT_PUBLIC_ENVIRONMENT || 'local'
+
+  switch (environment) {
+    case 'prod':
+      return 'bg-sidebar-primary'
+    case 'staging':
+      return 'bg-violet-700'
+    case 'local':
+      return 'bg-green-700'
+    default:
+      return 'bg-green-700'
+  }
+}
