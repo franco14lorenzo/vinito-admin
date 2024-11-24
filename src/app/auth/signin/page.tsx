@@ -48,38 +48,27 @@ export default async function SignInPage(props: {
                 key={provider.id}
                 action={async () => {
                   'use server'
+                  const callbackUrl = Array.isArray(searchParams?.callbackUrl)
+                    ? searchParams.callbackUrl[0]
+                    : searchParams?.callbackUrl ?? ''
+
                   try {
                     await signIn(provider.id, {
-                      redirectTo: Array.isArray(searchParams?.callbackUrl)
-                        ? searchParams.callbackUrl[0]
-                        : searchParams?.callbackUrl ?? ''
+                      redirectTo: !error ? callbackUrl : '/'
                     })
-                  } catch (error: unknown) {
-                    // Ignore NEXT_REDIRECT errors as they are part of the normal OAuth flow
-                    if (
-                      (error as { digest?: string })?.digest?.includes(
-                        'NEXT_REDIRECT'
-                      )
-                    ) {
-                      throw error // Let Next.js handle the redirect
+                  } catch (error) {
+                    // Signin can fail for a number of reasons, such as the user
+                    // not existing, or the user not having the correct role.
+                    // In some cases, you may want to redirect to a custom error
+                    if (error instanceof AuthError) {
+                      return redirect(`/auth/error/?error=${error.type}`)
                     }
 
-                    console.error(error)
-                    const newSearchParams = new URLSearchParams()
-                    if (error instanceof AuthError) {
-                      newSearchParams.set('error', error.type)
-                    } else {
-                      newSearchParams.set('error', 'UnknownError')
-                    }
-                    if (searchParams?.callbackUrl) {
-                      newSearchParams.set(
-                        'callbackUrl',
-                        Array.isArray(searchParams.callbackUrl)
-                          ? searchParams.callbackUrl[0]
-                          : searchParams.callbackUrl
-                      )
-                    }
-                    redirect(`/auth/signin?${newSearchParams.toString()}`)
+                    // Otherwise if a redirects happens Next.js can handle it
+                    // so you can just re-thrown the error and let Next.js handle it.
+                    // Docs:
+                    // https://nextjs.org/docs/app/api-reference/functions/redirect#server-component
+                    throw error
                   }
                 }}
               >
@@ -91,16 +80,18 @@ export default async function SignInPage(props: {
                   {provider.id === 'google' && <GoogleSvg size={24} />}
                   <span>Ingresar con {provider.name}</span>
                 </Button>
+                {error && (
+                  <p className="text-center text-xs text-red-500">
+                    {error === 'AccessDenied'
+                      ? 'No tienes permiso para acceder. Inicia sesión con una cuenta de administrador'
+                      : error === 'UnknownError'
+                      ? 'Ocurrió un error al iniciar sesión. Por favor, intenta de nuevo'
+                      : 'Error de autenticación. Por favor, intenta de nuevo'}
+                  </p>
+                )}
               </form>
             ))}
           </div>
-          {error && (
-            <p className="text-center text-xs text-red-500">
-              {error === 'AccessDenied'
-                ? 'No tienes permiso para acceder. Inicia sesión con una cuenta de administrador'
-                : 'Ocurrió un error al iniciar sesión. Por favor, intenta de nuevo'}
-            </p>
-          )}
         </div>
 
         <div className="mt-6 text-center text-xs text-gray-500">
