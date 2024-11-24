@@ -12,6 +12,7 @@ import {
   CardTitle
 } from '@/components/ui/card'
 import { providersMap, signIn } from '@/lib/auth'
+import { capitalize, getBackgroundColorOfEnvironment } from '@/lib/utils'
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>
 
@@ -21,9 +22,15 @@ export default async function SignInPage(props: {
   const searchParams = await props.searchParams
   const error = searchParams?.error as string
 
+  const logoBackgroundColor = getBackgroundColorOfEnvironment(
+    process.env.NEXT_PUBLIC_ENVIRONMENT || 'local'
+  )
+
   return (
     <Card className="mx-auto max-w-sm">
-      <div className="mx-auto mt-6 grid  w-fit place-content-center rounded-md bg-black p-2">
+      <div
+        className={`mx-auto mt-6 grid w-fit place-content-center rounded-md p-2 ${logoBackgroundColor}`}
+      >
         <GrapeIcon size={16} className="text-white" />
       </div>
       <CardHeader className="pt-2">
@@ -31,7 +38,7 @@ export default async function SignInPage(props: {
         <CardDescription>
           <div className="-mt-1 flex flex-col items-center justify-center">
             <p className="mb-6  text-center text-xs text-gray-500">
-              {process.env.ENVIRONMENT}
+              {capitalize(process.env.NEXT_PUBLIC_ENVIRONMENT || 'local')}
             </p>
             <p className="text-center text-sm">
               Inicia sesión con tu cuenta de administrador

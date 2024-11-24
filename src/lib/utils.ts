@@ -12,9 +12,7 @@ export function getInitials(name: string) {
     .join('')
 }
 
-export function getBackgroundColorOfEnvironment() {
-  const environment = process.env.NEXT_PUBLIC_ENVIRONMENT || 'local'
-
+export function getBackgroundColorOfEnvironment(environment: string) {
   switch (environment) {
     case 'prod':
       return 'bg-sidebar-primary'
@@ -25,4 +23,8 @@ export function getBackgroundColorOfEnvironment() {
     default:
       return 'bg-green-700'
   }
+}
+
+export function capitalize(str: string): string {
+  return str.charAt(0).toUpperCase() + str.slice(1)
 }

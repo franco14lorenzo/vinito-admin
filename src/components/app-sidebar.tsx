@@ -1,21 +1,12 @@
 'use client'
 
 import * as React from 'react'
-import {
-  AudioWaveform,
-  Command,
-  GrapeIcon,
-  PackageOpen,
-  Settings2,
-  TruckIcon,
-  Users,
-  Wine
-} from 'lucide-react'
+import { PackageOpen, Settings2, TruckIcon, Users, Wine } from 'lucide-react'
 
+import { EnvironmentsSwitcher } from '@/components/environments-switcher'
 import { NavMain } from '@/components/nav-main'
 /* import { NavProjects } from '@/components/nav-projects' */
 import { NavUser } from '@/components/nav-user'
-import { TeamSwitcher } from '@/components/team-switcher'
 import {
   Sidebar,
   SidebarContent,
@@ -31,23 +22,6 @@ const data = {
     email: 'm@example.com',
     avatar: '/avatars/shadcn.jpg'
   },
-  teams: [
-    {
-      name: 'Vinito Admin',
-      logo: GrapeIcon,
-      plan: 'Production'
-    },
-    {
-      name: 'Vinito Corp.',
-      logo: AudioWaveform,
-      plan: 'Startup'
-    },
-    {
-      name: 'Evil Corp.',
-      logo: Command,
-      plan: 'Free'
-    }
-  ],
   navMain: [
     {
       title: 'Ventas',
@@ -139,7 +113,7 @@ export function AppSidebar({
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
+        <EnvironmentsSwitcher />
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
