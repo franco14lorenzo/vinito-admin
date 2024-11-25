@@ -1,11 +1,17 @@
 'use client'
 
 import * as React from 'react'
-import { PackageOpen, Settings2, TruckIcon, Users, Wine } from 'lucide-react'
+import {
+  FileText,
+  PackageOpen,
+  Settings,
+  TruckIcon,
+  Users,
+  Wine
+} from 'lucide-react'
 
 import { EnvironmentsSwitcher } from '@/components/environments-switcher'
 import { NavMain } from '@/components/nav-main'
-/* import { NavProjects } from '@/components/nav-projects' */
 import { NavUser } from '@/components/nav-user'
 import {
   Sidebar,
@@ -17,11 +23,6 @@ import {
 import type { User } from '@/types/auth'
 
 const data = {
-  user: {
-    name: 'shadcn',
-    email: 'm@example.com',
-    avatar: '/avatars/shadcn.jpg'
-  },
   navMain: [
     {
       title: 'Ventas',
@@ -85,14 +86,21 @@ const data = {
       ]
     },
     {
-      title: 'Configuraciones',
+      title: 'Contenidos',
       url: '#',
-      icon: Settings2,
+      icon: FileText,
       items: [
         {
           title: 'FAQs',
-          url: '/faqs'
-        },
+          url: '/contenidos/faqs'
+        }
+      ]
+    },
+    {
+      title: 'Configuraciones',
+      url: '#',
+      icon: Settings,
+      items: [
         {
           title: 'Métodos de Pago',
           url: '/metodos-de-pago'
@@ -117,7 +125,6 @@ export function AppSidebar({
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        {/*      <NavProjects projects={data.projects} /> */}
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={user} />
