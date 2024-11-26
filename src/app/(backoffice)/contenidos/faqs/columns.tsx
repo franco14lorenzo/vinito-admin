@@ -110,7 +110,7 @@ const columnsDefinition: FAQColumn[] = [
   }
 ]
 
-function StatusBadge({ status }: { status: FAQStatus }) {
+export function StatusBadge({ status }: { status: FAQStatus }) {
   const statusConfig = {
     active: {
       label: 'Activo',

@@ -1,6 +1,6 @@
 'use client'
 
-import * as React from 'react'
+import { useEffect, useState } from 'react'
 import {
   ColumnFiltersState,
   flexRender,
@@ -10,15 +10,7 @@ import {
   useReactTable,
   VisibilityState
 } from '@tanstack/react-table'
-import {
-  AlertCircle,
-  CheckCircle2,
-  ChevronDown,
-  Clock,
-  Columns3,
-  PlusCircle,
-  XCircle
-} from 'lucide-react'
+import { ChevronDown, Columns3, PlusCircle } from 'lucide-react'
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 
@@ -47,7 +39,8 @@ import {
   TableRow
 } from '@/components/ui/table'
 
-import type { ColumnsDefinition, FAQ, FAQColumn } from './columns'
+import type { ColumnsDefinition, FAQ, FAQColumn, FAQStatus } from './columns'
+import { StatusBadge } from './columns'
 
 interface DataTableProps {
   columns: ColumnsDefinition
@@ -65,12 +58,10 @@ export function DataTable({
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
-  const [sorting, setSorting] = React.useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
-  )
-  const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>(() => {
+  const [sorting, setSorting] = useState<SortingState>([])
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
+    () => {
       const columnsFromParams = searchParams.get('columns') || ''
       const columnsArray = columnsFromParams.split(',').filter(Boolean)
       const visibilityState: VisibilityState = {}
@@ -88,9 +79,10 @@ export function DataTable({
       }
 
       return visibilityState
-    })
+    }
+  )
 
-  React.useEffect(() => {
+  useEffect(() => {
     const statusParam = searchParams.get('status')
     if (statusParam) {
       setColumnFilters((prev) => [
@@ -99,9 +91,6 @@ export function DataTable({
       ])
     }
   }, [searchParams])
-
-  console.log('Column filters:', columnFilters)
-  console.log('Data passed to DataTable:', data)
 
   const handlePageChange = (page: number) => {
     const current = new URLSearchParams(Array.from(searchParams.entries()))
@@ -168,21 +157,6 @@ export function DataTable({
   const selectedStatuses =
     (table.getColumn('status')?.getFilterValue() as string[]) || []
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'active':
-        return <CheckCircle2 className="mr-2 h-4 w-4 text-green-500" />
-      case 'draft':
-        return <Clock className="mr-2 h-4 w-4 text-gray-500" />
-      case 'inactive':
-        return <AlertCircle className="mr-2 h-4 w-4 text-yellow-500" />
-      case 'deleted':
-        return <XCircle className="mr-2 h-4 w-4 text-red-500" />
-      default:
-        return null
-    }
-  }
-
   return (
     <div className="w-full">
       <div className="flex items-center gap-2 py-4">
@@ -213,12 +187,16 @@ export function DataTable({
                     className="mx-2 h-4 w-[1px] shrink-0 bg-border"
                   />
                   {selectedStatuses.map((statusItem) => (
-                    <span
+                    <StatusBadge
+                      status={statusItem as FAQStatus}
+                      key={statusItem}
+                    />
+                    /*   <span
                       key={statusItem}
                       className="inline-flex items-center rounded-sm border border-transparent bg-secondary px-1 py-0.5 text-xs font-normal text-secondary-foreground transition-colors hover:bg-secondary/80 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                     >
                       {statusItem.charAt(0).toUpperCase() + statusItem.slice(1)}
-                    </span>
+                    </span> */
                   ))}
                 </>
               ) : null}
@@ -291,10 +269,7 @@ export function DataTable({
                     }}
                     className="mr-0.5"
                   />
-                  <span className="flex items-center">
-                    {getStatusIcon(status)}{' '}
-                    {status.charAt(0).toUpperCase() + status.slice(1)}
-                  </span>
+                  <StatusBadge status={status as FAQStatus} />
                 </DropdownMenuItem>
               )
             })}
