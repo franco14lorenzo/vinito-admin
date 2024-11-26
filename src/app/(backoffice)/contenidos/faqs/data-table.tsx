@@ -10,15 +10,25 @@ import {
   useReactTable,
   VisibilityState
 } from '@tanstack/react-table'
-import { ChevronDown, Columns3 } from 'lucide-react'
+import {
+  AlertCircle,
+  CheckCircle2,
+  ChevronDown,
+  Clock,
+  Columns3,
+  PlusCircle,
+  XCircle
+} from 'lucide-react'
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox' // Import Shadcn Checkbox
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
@@ -39,7 +49,6 @@ import {
 
 import type { ColumnsDefinition, FAQ, FAQColumn } from './columns'
 
-// Modificar la interfaz para usar tipos específicos
 interface DataTableProps {
   columns: ColumnsDefinition
   data: FAQ[]
@@ -47,7 +56,6 @@ interface DataTableProps {
   currentPage?: number
 }
 
-// Modificar la definición de la función para usar los tipos específicos
 export function DataTable({
   columns,
   data,
@@ -107,7 +115,7 @@ export function DataTable({
   const handlePerPageChange = (value: string) => {
     const current = new URLSearchParams(Array.from(searchParams.entries()))
     current.set('perPage', value)
-    current.set('page', '1') // Reset to first page when changing perPage
+    current.set('page', '1')
     router.push(`${pathname}?${current.toString()}`, { scroll: false })
   }
 
@@ -140,10 +148,9 @@ export function DataTable({
     pageCount,
     getCoreRowModel: getCoreRowModel(),
     manualPagination: true,
-    manualSorting: true, // Added manualSorting
-    manualFiltering: true, // Added manualFiltering
+    manualSorting: true,
+    manualFiltering: true,
     getPaginationRowModel: getPaginationRowModel(),
-    // Removed getSortedRowModel and getFilteredRowModel for manual handling
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
@@ -158,7 +165,23 @@ export function DataTable({
     }
   })
 
-  console.log('culiaaa', table.getRowModel().rows)
+  const selectedStatuses =
+    (table.getColumn('status')?.getFilterValue() as string[]) || []
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'active':
+        return <CheckCircle2 className="mr-2 h-4 w-4 text-green-500" />
+      case 'draft':
+        return <Clock className="mr-2 h-4 w-4 text-gray-500" />
+      case 'inactive':
+        return <AlertCircle className="mr-2 h-4 w-4 text-yellow-500" />
+      case 'deleted':
+        return <XCircle className="mr-2 h-4 w-4 text-red-500" />
+      default:
+        return null
+    }
+  }
 
   return (
     <div className="w-full">
@@ -173,28 +196,47 @@ export function DataTable({
           }
           className="max-w-sm"
         />
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="w-[150px]">
-              Estados <ChevronDown className="ml-2 h-4 w-4" />
+            <Button
+              variant="outline"
+              className="flex w-fit items-center border-dashed"
+            >
+              <PlusCircle className="h-4 w-4" />
+              Estados
+              {selectedStatuses.length > 0 ? (
+                <>
+                  <div
+                    data-orientation="vertical"
+                    role="none"
+                    className="mx-2 h-4 w-[1px] shrink-0 bg-border"
+                  />
+                  {selectedStatuses.map((statusItem) => (
+                    <span
+                      key={statusItem}
+                      className="inline-flex items-center rounded-sm border border-transparent bg-secondary px-1 py-0.5 text-xs font-normal text-secondary-foreground transition-colors hover:bg-secondary/80 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                    >
+                      {statusItem.charAt(0).toUpperCase() + statusItem.slice(1)}
+                    </span>
+                  ))}
+                </>
+              ) : null}
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-[150px]">
+          <DropdownMenuContent align="start" className="w-fit px-2">
             {['active', 'draft', 'inactive', 'deleted'].map((status) => {
-              const selectedStatuses =
-                (table.getColumn('status')?.getFilterValue() as
-                  | string[]
-                  | undefined) ?? []
+              const isChecked = selectedStatuses.includes(status)
+
               return (
-                <DropdownMenuCheckboxItem
+                <DropdownMenuItem
                   key={status}
-                  checked={selectedStatuses.includes(status)}
-                  onCheckedChange={(checked) => {
+                  onClick={() => {
                     let filterValue: string[] = [...selectedStatuses]
-                    if (checked) {
-                      filterValue.push(status)
-                    } else {
+                    if (isChecked) {
                       filterValue = filterValue.filter((s) => s !== status)
+                    } else {
+                      filterValue.push(status)
                     }
 
                     table
@@ -202,7 +244,7 @@ export function DataTable({
                       ?.setFilterValue(
                         filterValue.length ? filterValue : undefined
                       )
-                    // Update URL params and reset page to 1
+
                     const current = new URLSearchParams(
                       Array.from(searchParams.entries())
                     )
@@ -211,18 +253,54 @@ export function DataTable({
                     } else {
                       current.delete('status')
                     }
-                    current.set('page', '1') // Reset to first page
+                    current.set('page', '1')
                     router.push(`${pathname}?${current.toString()}`, {
                       scroll: false
                     })
                   }}
+                  className="flex items-center"
                 >
-                  {status.charAt(0).toUpperCase() + status.slice(1)}
-                </DropdownMenuCheckboxItem>
+                  <Checkbox
+                    checked={isChecked}
+                    onCheckedChange={(checked) => {
+                      let filterValue: string[] = [...selectedStatuses]
+                      if (checked) {
+                        filterValue.push(status)
+                      } else {
+                        filterValue = filterValue.filter((s) => s !== status)
+                      }
+
+                      table
+                        .getColumn('status')
+                        ?.setFilterValue(
+                          filterValue.length ? filterValue : undefined
+                        )
+
+                      const current = new URLSearchParams(
+                        Array.from(searchParams.entries())
+                      )
+                      if (filterValue.length) {
+                        current.set('status', filterValue.join(','))
+                      } else {
+                        current.delete('status')
+                      }
+                      current.set('page', '1')
+                      router.push(`${pathname}?${current.toString()}`, {
+                        scroll: false
+                      })
+                    }}
+                    className="mr-0.5"
+                  />
+                  <span className="flex items-center">
+                    {getStatusIcon(status)}{' '}
+                    {status.charAt(0).toUpperCase() + status.slice(1)}
+                  </span>
+                </DropdownMenuItem>
               )
             })}
           </DropdownMenuContent>
         </DropdownMenu>
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto">

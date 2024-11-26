@@ -7,7 +7,7 @@ import {
   CheckCircle2,
   Clock,
   MoreHorizontal,
-  Trash2
+  XCircle
 } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
@@ -120,16 +120,16 @@ function StatusBadge({ status }: { status: FAQStatus }) {
     draft: {
       label: 'Borrador',
       icon: Clock,
-      variant: 'warning'
+      variant: 'secondary'
     },
     inactive: {
       label: 'Inactivo',
       icon: AlertCircle,
-      variant: 'secondary'
+      variant: 'warning'
     },
     deleted: {
       label: 'Eliminado',
-      icon: Trash2,
+      icon: XCircle,
       variant: 'destructive'
     }
   }

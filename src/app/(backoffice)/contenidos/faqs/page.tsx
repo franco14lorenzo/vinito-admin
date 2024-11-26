@@ -65,9 +65,6 @@ export default async function FAQsPage({
     params.visibleColumns || []
   )
 
-  console.log('Fetched data:', data)
-  console.log('Query error:', error)
-
   if (error) {
     return <div>Error: {error.message}</div>
   }
@@ -162,9 +159,6 @@ async function getFAQs(params: FAQFilters = {}, visibleColumns: string[]) {
     data: FAQ[]
     error: PostgrestError
   }
-
-  console.log('Fetched data:', data)
-  console.log('Query error:', error)
 
   return {
     data,
