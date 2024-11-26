@@ -96,7 +96,7 @@ export function EnvironmentsSwitcher() {
                   <div
                     className={`${getBackgroundColorOfEnvironment(
                       environment.environment
-                    )} flex size-6 items-center justify-center rounded-sm border text-sidebar-primary-foreground`}
+                    )} flex size-6 items-center justify-center rounded-sm text-sidebar-primary-foreground`}
                   >
                     <environment.logo className="size-4 shrink-0" />
                   </div>
