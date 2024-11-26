@@ -18,7 +18,7 @@ interface FAQFilters {
     question?: string
     answer?: string
     order?: number
-    status?: FAQStatus
+    status?: FAQStatus | FAQStatus[]
   }
   visibleColumns?: string[]
 }
@@ -51,8 +51,8 @@ export default async function FAQsPage({
       order: awaitedSearchParams.order
         ? Number(awaitedSearchParams.order)
         : undefined,
-      status: isValidFAQStatus(awaitedSearchParams.status as string)
-        ? (awaitedSearchParams.status as FAQStatus)
+      status: awaitedSearchParams.status
+        ? ((awaitedSearchParams.status as string).split(',') as FAQStatus[])
         : undefined
     },
     visibleColumns: awaitedSearchParams.columns
@@ -64,6 +64,9 @@ export default async function FAQsPage({
     params,
     params.visibleColumns || []
   )
+
+  console.log('Fetched data:', data)
+  console.log('Query error:', error)
 
   if (error) {
     return <div>Error: {error.message}</div>
@@ -82,12 +85,6 @@ export default async function FAQsPage({
       />
     </div>
   )
-}
-
-function isValidFAQStatus(status: string | undefined): status is FAQStatus {
-  return status
-    ? ['draft', 'active', 'inactive', 'deleted'].includes(status)
-    : false
 }
 
 async function getFAQs(params: FAQFilters = {}, visibleColumns: string[]) {
@@ -110,7 +107,11 @@ async function getFAQs(params: FAQFilters = {}, visibleColumns: string[]) {
   }
   Object.entries(otherFilters).forEach(([key, value]) => {
     if (value !== undefined) {
-      countQuery.eq(key, value)
+      if (key === 'status' && Array.isArray(value)) {
+        countQuery.in(key, value)
+      } else {
+        countQuery.eq(key, value)
+      }
     }
   })
 
@@ -119,8 +120,6 @@ async function getFAQs(params: FAQFilters = {}, visibleColumns: string[]) {
   if (!totalRows) {
     return { data: [], error: null, count: 0 }
   }
-
-  console.log('visibleColumns:', visibleColumns)
 
   const databaseColumns = [
     'id',
@@ -142,7 +141,11 @@ async function getFAQs(params: FAQFilters = {}, visibleColumns: string[]) {
   }
   Object.entries(filters).forEach(([key, value]) => {
     if (value !== undefined && key !== 'order') {
-      query = query.eq(key, value)
+      if (key === 'status' && Array.isArray(value)) {
+        query = query.in(key, value)
+      } else {
+        query = query.eq(key, value)
+      }
     }
   })
 
@@ -157,8 +160,11 @@ async function getFAQs(params: FAQFilters = {}, visibleColumns: string[]) {
 
   const { data, error } = (await query) as unknown as {
     data: FAQ[]
-    error: PostgrestError | null
+    error: PostgrestError
   }
+
+  console.log('Fetched data:', data)
+  console.log('Query error:', error)
 
   return {
     data,

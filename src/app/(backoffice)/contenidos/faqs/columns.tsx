@@ -1,8 +1,16 @@
 'use client'
 
 import { ColumnDef } from '@tanstack/react-table'
-import { ArrowUpDown, MoreHorizontal } from 'lucide-react'
+import {
+  AlertCircle,
+  ArrowUpDown,
+  CheckCircle2,
+  Clock,
+  MoreHorizontal,
+  Trash2
+} from 'lucide-react'
 
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -13,12 +21,14 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 
+export type FAQStatus = 'draft' | 'active' | 'inactive' | 'deleted'
+
 export type FAQ = {
   id: number
   question: string
   answer: string
   order: number
-  status: 'draft' | 'active' | 'inactive' | 'deleted'
+  status: FAQStatus
   created_at: string
 }
 
@@ -67,10 +77,7 @@ const columnsDefinition: FAQColumn[] = [
     id: 'status',
     accessorKey: 'status',
     header: 'Estado',
-    cell: ({ row }) => {
-      const status = row.getValue('status') as string
-      return <div className="capitalize">{status}</div>
-    }
+    cell: ({ row }) => <StatusBadge status={row.getValue('status')} />
   },
   {
     id: 'actions',
@@ -102,6 +109,46 @@ const columnsDefinition: FAQColumn[] = [
     }
   }
 ]
+
+function StatusBadge({ status }: { status: FAQStatus }) {
+  const statusConfig = {
+    active: {
+      label: 'Activo',
+      icon: CheckCircle2,
+      variant: 'success'
+    },
+    draft: {
+      label: 'Borrador',
+      icon: Clock,
+      variant: 'warning'
+    },
+    inactive: {
+      label: 'Inactivo',
+      icon: AlertCircle,
+      variant: 'secondary'
+    },
+    deleted: {
+      label: 'Eliminado',
+      icon: Trash2,
+      variant: 'destructive'
+    }
+  }
+
+  const config = statusConfig[status]
+  const Icon = config.icon
+
+  return (
+    <Badge
+      variant={
+        config.variant as 'success' | 'warning' | 'secondary' | 'destructive'
+      }
+      className="gap-1"
+    >
+      <Icon className="h-4 w-4" />
+      {config.label}
+    </Badge>
+  )
+}
 
 export const columns = columnsDefinition
 

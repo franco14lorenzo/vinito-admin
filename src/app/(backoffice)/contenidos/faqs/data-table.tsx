@@ -5,14 +5,12 @@ import {
   ColumnFiltersState,
   flexRender,
   getCoreRowModel,
-  getFilteredRowModel,
   getPaginationRowModel,
-  getSortedRowModel,
   SortingState,
   useReactTable,
   VisibilityState
 } from '@tanstack/react-table'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, Columns3 } from 'lucide-react'
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 
@@ -84,6 +82,19 @@ export function DataTable({
       return visibilityState
     })
 
+  React.useEffect(() => {
+    const statusParam = searchParams.get('status')
+    if (statusParam) {
+      setColumnFilters((prev) => [
+        ...prev.filter((filter) => filter.id !== 'status'),
+        { id: 'status', value: statusParam.split(',') }
+      ])
+    }
+  }, [searchParams])
+
+  console.log('Column filters:', columnFilters)
+  console.log('Data passed to DataTable:', data)
+
   const handlePageChange = (page: number) => {
     const current = new URLSearchParams(Array.from(searchParams.entries()))
     current.set('page', String(page))
@@ -129,9 +140,10 @@ export function DataTable({
     pageCount,
     getCoreRowModel: getCoreRowModel(),
     manualPagination: true,
+    manualSorting: true, // Added manualSorting
+    manualFiltering: true, // Added manualFiltering
     getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
+    // Removed getSortedRowModel and getFilteredRowModel for manual handling
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
@@ -146,11 +158,13 @@ export function DataTable({
     }
   })
 
+  console.log('culiaaa', table.getRowModel().rows)
+
   return (
     <div className="w-full">
-      <div className="flex items-center py-4">
+      <div className="flex items-center gap-2 py-4">
         <Input
-          placeholder="Filter questions..."
+          placeholder="Buscar"
           value={
             (table.getColumn('question')?.getFilterValue() as string) ?? ''
           }
@@ -161,7 +175,58 @@ export function DataTable({
         />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
+            <Button variant="outline" className="w-[150px]">
+              Estados <ChevronDown className="ml-2 h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-[150px]">
+            {['active', 'draft', 'inactive', 'deleted'].map((status) => {
+              const selectedStatuses =
+                (table.getColumn('status')?.getFilterValue() as
+                  | string[]
+                  | undefined) ?? []
+              return (
+                <DropdownMenuCheckboxItem
+                  key={status}
+                  checked={selectedStatuses.includes(status)}
+                  onCheckedChange={(checked) => {
+                    let filterValue: string[] = [...selectedStatuses]
+                    if (checked) {
+                      filterValue.push(status)
+                    } else {
+                      filterValue = filterValue.filter((s) => s !== status)
+                    }
+
+                    table
+                      .getColumn('status')
+                      ?.setFilterValue(
+                        filterValue.length ? filterValue : undefined
+                      )
+                    // Update URL params and reset page to 1
+                    const current = new URLSearchParams(
+                      Array.from(searchParams.entries())
+                    )
+                    if (filterValue.length) {
+                      current.set('status', filterValue.join(','))
+                    } else {
+                      current.delete('status')
+                    }
+                    current.set('page', '1') // Reset to first page
+                    router.push(`${pathname}?${current.toString()}`, {
+                      scroll: false
+                    })
+                  }}
+                >
+                  {status.charAt(0).toUpperCase() + status.slice(1)}
+                </DropdownMenuCheckboxItem>
+              )
+            })}
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto">
+              <Columns3 className="h-4 w-4" />
               Columnas <ChevronDown className="ml-2 h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
