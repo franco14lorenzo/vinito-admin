@@ -38,7 +38,7 @@ export type FAQ = {
 export default async function FAQsPage({
   searchParams
 }: {
-  searchParams: { [key: string]: string | string[] | undefined }
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
   const awaitedSearchParams = await searchParams
   const params: FAQFilters = {
