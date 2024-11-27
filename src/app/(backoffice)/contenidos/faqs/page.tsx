@@ -3,6 +3,8 @@ import { PostgrestError } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/server'
 
 import { columns } from './columns'
+import { CreateFAQButton } from './create-faq-button'
+import { CreateFAQSheet } from './create-faq-sheet'
 import { DataTable } from './data-table'
 
 type FAQStatus = 'draft' | 'active' | 'inactive' | 'deleted'
@@ -21,6 +23,7 @@ interface FAQFilters {
     status?: FAQStatus | FAQStatus[]
   }
   visibleColumns?: string[]
+  search?: string
 }
 
 export type FAQ = {
@@ -42,8 +45,8 @@ export default async function FAQsPage({
     page: Number(awaitedSearchParams.page) || 1,
     perPage: Number(awaitedSearchParams.perPage) || 10,
     orderBy: {
-      column: (awaitedSearchParams.orderBy as string) || 'order',
-      ascending: awaitedSearchParams.sortDirection !== 'desc'
+      column: (awaitedSearchParams.sortBy as string) || 'order',
+      ascending: awaitedSearchParams.sortOrder !== 'desc'
     },
     filters: {
       question: awaitedSearchParams.question as string,
@@ -57,7 +60,8 @@ export default async function FAQsPage({
     },
     visibleColumns: awaitedSearchParams.columns
       ? (awaitedSearchParams.columns as string).split(',').filter(Boolean)
-      : ['order', 'question', 'answer', 'status']
+      : ['order', 'question', 'answer', 'status'],
+    search: (awaitedSearchParams.search as string) || ''
   }
 
   const { data, error, count } = await getFAQs(
@@ -73,13 +77,12 @@ export default async function FAQsPage({
 
   return (
     <div className="container mx-auto py-1">
-      <h2 className="mb-5 text-2xl font-bold tracking-tight">FAQs</h2>
-      <DataTable
-        columns={columns}
-        data={data || []}
-        pageCount={pageCount}
-        currentPage={params.page}
-      />
+      <div className="mb-5 flex items-center justify-between">
+        <h2 className="text-2xl font-bold tracking-tight">FAQs</h2>
+        <CreateFAQButton />
+      </div>
+      <DataTable columns={columns} data={data || []} pageCount={pageCount} />
+      <CreateFAQSheet />
     </div>
   )
 }
@@ -94,7 +97,7 @@ async function getFAQs(params: FAQFilters = {}, visibleColumns: string[]) {
 
   const supabase = await createClient()
 
-  const countQuery = supabase
+  let countQuery = supabase
     .from('faqs')
     .select('id', { count: 'exact', head: true })
 
@@ -112,7 +115,21 @@ async function getFAQs(params: FAQFilters = {}, visibleColumns: string[]) {
     }
   })
 
-  const { count: totalRows } = await countQuery
+  if (params.search) {
+    const searchInt = parseInt(params.search, 10)
+    const searchCondition = `question.ilike.%${params.search}%,answer.ilike.%${params.search}%`
+    if (!isNaN(searchInt)) {
+      countQuery = countQuery.or(`${searchCondition},order.eq.${searchInt}`)
+    } else {
+      countQuery = countQuery.or(searchCondition)
+    }
+  }
+
+  const { count: totalRows, error: countError } = await countQuery
+
+  if (countError) {
+    return { data: [], error: countError, count: 0 }
+  }
 
   if (!totalRows) {
     return { data: [], error: null, count: 0 }
@@ -131,7 +148,10 @@ async function getFAQs(params: FAQFilters = {}, visibleColumns: string[]) {
     databaseColumns.includes(col)
   )
 
-  let query = supabase.from('faqs').select(filteredColumns.join(','))
+  // Ensure 'id' is always included in the query
+  const queryColumns = [...new Set(['id', ...filteredColumns])].join(',')
+
+  let query = supabase.from('faqs').select(queryColumns)
 
   if (filters.order !== undefined) {
     query = query.eq('order', filters.order)
@@ -145,6 +165,16 @@ async function getFAQs(params: FAQFilters = {}, visibleColumns: string[]) {
       }
     }
   })
+
+  if (params.search) {
+    const searchInt = parseInt(params.search, 10)
+    const searchCondition = `question.ilike.%${params.search}%,answer.ilike.%${params.search}%`
+    if (!isNaN(searchInt)) {
+      query = query.or(`${searchCondition},order.eq.${searchInt}`)
+    } else {
+      query = query.or(searchCondition)
+    }
+  }
 
   const from = (page - 1) * perPage
   const to = from + (perPage - 1)

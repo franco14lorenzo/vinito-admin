@@ -7,6 +7,7 @@ import {
   getCoreRowModel,
   getPaginationRowModel,
   SortingState,
+  Updater,
   useReactTable,
   VisibilityState
 } from '@tanstack/react-table'
@@ -18,7 +19,6 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox' // Import Shadcn Checkbox
 import {
   DropdownMenu,
-  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger
@@ -46,19 +46,19 @@ interface DataTableProps {
   columns: ColumnsDefinition
   data: FAQ[]
   pageCount: number
-  currentPage?: number
 }
 
-export function DataTable({
-  columns,
-  data,
-  pageCount,
-  currentPage = 1
-}: DataTableProps) {
+export function DataTable({ columns, data, pageCount }: DataTableProps) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
-  const [sorting, setSorting] = useState<SortingState>([])
+  const [sorting, setSorting] = useState<SortingState>(() => {
+    const sortBy = searchParams.get('sortBy')
+    const sortOrder = searchParams.get('sortOrder')
+    return sortBy
+      ? [{ id: sortBy, desc: sortOrder === 'desc' }]
+      : [{ id: 'order', desc: false }]
+  })
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
     () => {
@@ -89,7 +89,28 @@ export function DataTable({
         ...prev.filter((filter) => filter.id !== 'status'),
         { id: 'status', value: statusParam.split(',') }
       ])
+    } else {
+      // Set default selected statuses if no status parameter exists
+      const defaultStatuses = ['active', 'inactive', 'draft']
+      setColumnFilters((prev) => [
+        ...prev.filter((filter) => filter.id !== 'status'),
+        { id: 'status', value: defaultStatuses }
+      ])
+      const current = new URLSearchParams(Array.from(searchParams.entries()))
+      current.set('status', defaultStatuses.join(','))
+      router.push(`${pathname}?${current.toString()}`, { scroll: false })
     }
+  }, [searchParams, router, pathname])
+
+  // Initialize currentPage as state
+  const [currentPage, setCurrentPage] = useState<number>(
+    Number(searchParams.get('page') || 1)
+  )
+
+  // Update currentPage when searchParams change
+  useEffect(() => {
+    const page = Number(searchParams.get('page') || 1)
+    setCurrentPage(page)
   }, [searchParams])
 
   const handlePageChange = (page: number) => {
@@ -131,6 +152,30 @@ export function DataTable({
     router.push(`${pathname}?${current.toString()}`, { scroll: false })
   }
 
+  const handleSortingChange = (updaterOrValue: Updater<SortingState>) => {
+    const newSorting =
+      typeof updaterOrValue === 'function'
+        ? updaterOrValue(sorting)
+        : updaterOrValue
+
+    setSorting(newSorting)
+    const current = new URLSearchParams(Array.from(searchParams.entries()))
+
+    if (newSorting.length > 0) {
+      const sortItem = newSorting[0]
+      if (sortItem && sortItem.id) {
+        current.set('sortBy', sortItem.id)
+        current.set('sortOrder', sortItem.desc ? 'desc' : 'asc')
+      }
+    } else {
+      current.delete('sortBy')
+      current.delete('sortOrder')
+    }
+
+    current.set('page', '1') // Reset to first page when sorting changes
+    router.push(`${pathname}?${current.toString()}`, { scroll: false })
+  }
+
   const table = useReactTable({
     data,
     columns,
@@ -140,7 +185,7 @@ export function DataTable({
     manualSorting: true,
     manualFiltering: true,
     getPaginationRowModel: getPaginationRowModel(),
-    onSortingChange: setSorting,
+    onSortingChange: handleSortingChange,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
     state: {
@@ -157,17 +202,33 @@ export function DataTable({
   const selectedStatuses =
     (table.getColumn('status')?.getFilterValue() as string[]) || []
 
+  const [searchValue, setSearchValue] = useState(
+    searchParams.get('search') || ''
+  )
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      const current = new URLSearchParams(Array.from(searchParams.entries()))
+      if (searchValue) {
+        current.set('search', searchValue)
+      } else {
+        current.delete('search')
+      }
+      router.push(`${pathname}?${current.toString()}`, { scroll: false })
+    }, 300)
+
+    return () => {
+      clearTimeout(handler)
+    }
+  }, [searchValue, router, pathname, searchParams])
+
   return (
     <div className="w-full">
       <div className="flex items-center gap-2 py-4">
         <Input
           placeholder="Buscar"
-          value={
-            (table.getColumn('question')?.getFilterValue() as string) ?? ''
-          }
-          onChange={(event) =>
-            table.getColumn('question')?.setFilterValue(event.target.value)
-          }
+          value={searchValue}
+          onChange={(event) => setSearchValue(event.target.value)}
           className="max-w-sm"
         />
 
@@ -191,12 +252,6 @@ export function DataTable({
                       status={statusItem as FAQStatus}
                       key={statusItem}
                     />
-                    /*   <span
-                      key={statusItem}
-                      className="inline-flex items-center rounded-sm border border-transparent bg-secondary px-1 py-0.5 text-xs font-normal text-secondary-foreground transition-colors hover:bg-secondary/80 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                    >
-                      {statusItem.charAt(0).toUpperCase() + statusItem.slice(1)}
-                    </span> */
                   ))}
                 </>
               ) : null}
@@ -288,18 +343,29 @@ export function DataTable({
               .getAllColumns()
               .filter((column) => column.getCanHide())
               .map((column) => {
+                if (column.id === 'order') return null
                 return (
-                  <DropdownMenuCheckboxItem
+                  <DropdownMenuItem
                     key={column.id}
-                    className="capitalize"
-                    checked={column.getIsVisible()}
-                    onCheckedChange={(value) => {
-                      column.toggleVisibility(!!value)
-                      handleColumnVisibilityChange(column.id!, !!value)
+                    className="flex items-center capitalize"
+                    onClick={() => {
+                      const newValue = !column.getIsVisible()
+                      column.toggleVisibility(newValue)
+                      handleColumnVisibilityChange(column.id!, newValue)
                     }}
                   >
-                    {column.id}
-                  </DropdownMenuCheckboxItem>
+                    <Checkbox
+                      checked={column.getIsVisible()}
+                      onCheckedChange={(checked) => {
+                        column.toggleVisibility(!!checked)
+                        handleColumnVisibilityChange(column.id!, !!checked)
+                      }}
+                      className="mr-2"
+                    />
+                    {typeof column.columnDef.header === 'string'
+                      ? column.columnDef.header
+                      : column.id}
+                  </DropdownMenuItem>
                 )
               })}
           </DropdownMenuContent>

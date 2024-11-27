@@ -3,12 +3,17 @@
 import { ColumnDef } from '@tanstack/react-table'
 import {
   AlertCircle,
-  ArrowUpDown,
+  ArrowDown,
+  ArrowUp,
   CheckCircle2,
   Clock,
+  Copy,
   MoreHorizontal,
+  Pencil,
+  Trash,
   XCircle
 } from 'lucide-react'
+import { toast } from 'sonner'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -42,35 +47,56 @@ const columnsDefinition: FAQColumn[] = [
   {
     id: 'order',
     accessorKey: 'order',
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-      >
-        #
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
+    header: ({ column }) => {
+      const isAsc = column.getIsSorted() === 'asc'
+      const isDesc = column.getIsSorted() === 'desc'
+
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="flex items-center gap-1">
+              Orden{isAsc && <ArrowDown className="h-4 w-4" />}
+              {isDesc && <ArrowUp className="h-4 w-4" />}
+              {!isAsc && !isDesc && <ArrowUp className="h-4 w-4" />}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start">
+            <DropdownMenuItem
+              onClick={() => column.toggleSorting(false)}
+              disabled={isAsc}
+              className="flex items-center gap-2"
+            >
+              <ArrowDown className="h-4 w-4" />
+              Ascendente
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => column.toggleSorting(true)}
+              disabled={isDesc}
+              className="flex items-center gap-2"
+            >
+              <ArrowUp className="h-4 w-4" />
+              Descendente
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )
+    },
+    cell: ({ row }) => (
+      <div className="text-center">{row.getValue('order')}</div>
     )
   },
   {
     id: 'question',
     accessorKey: 'question',
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-      >
-        Pregunta
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    )
+    header: 'Pregunta',
+    enableSorting: true
   },
   {
     id: 'answer',
     accessorKey: 'answer',
     header: 'Respuesta',
     cell: ({ row }) => (
-      <div className="max-w-[500px] truncate">{row.getValue('answer')}</div>
+      <div className="max-w-[500px]">{row.getValue('answer')}</div>
     )
   },
   {
@@ -94,15 +120,23 @@ const columnsDefinition: FAQColumn[] = [
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuLabel>Acciones</DropdownMenuLabel>
             <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(String(faq.id))}
+              onClick={() => {
+                navigator.clipboard.writeText(String(faq.id))
+                toast.success('ID copiado al portapapeles')
+              }}
             >
-              Copy ID
+              <Copy className="h-4 w-4" />
+              Copiar ID
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Edit FAQ</DropdownMenuItem>
-            <DropdownMenuItem>Delete FAQ</DropdownMenuItem>
+            <DropdownMenuItem>
+              <Pencil className="h-4 w-4" /> Editar
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              <Trash className="h-4 w-4" /> Eliminar
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       )
@@ -135,6 +169,8 @@ export function StatusBadge({ status }: { status: FAQStatus }) {
   }
 
   const config = statusConfig[status]
+  if (!config) return null // Add this check
+
   const Icon = config.icon
 
   return (

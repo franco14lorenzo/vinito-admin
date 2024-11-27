@@ -13,6 +13,7 @@ import {
   SidebarProvider,
   SidebarTrigger
 } from '@/components/ui/sidebar'
+import { Toaster } from '@/components/ui/sonner'
 import { auth } from '@/lib/auth'
 import type { User } from '@/types/auth'
 
@@ -52,6 +53,7 @@ export default async function BackOfficeLayout({
           </main>
         </SidebarInset>
       </SidebarProvider>
+      <Toaster position="bottom-right" />
     </>
   )
 }
