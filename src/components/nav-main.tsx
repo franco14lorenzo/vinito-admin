@@ -1,73 +1,167 @@
 'use client'
 
-import { ChevronRight, type LucideIcon } from 'lucide-react'
+import { Fragment, useState } from 'react'
+import {
+  Amphora,
+  Building,
+  CircleDollarSign,
+  CircleHelp,
+  CreditCard,
+  Mail,
+  PackageOpen,
+  Settings,
+  TruckIcon,
+  Users,
+  Wine
+} from 'lucide-react'
+
+import Link from 'next/link'
 
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger
-} from '@/components/ui/collapsible'
-import {
   SidebarGroup,
+  SidebarGroupContent,
   SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
-  SidebarMenuSubItem
+  useSidebar
 } from '@/components/ui/sidebar'
 
-export function NavMain({
-  items
-}: {
-  items: {
-    title: string
-    url: string
-    icon?: LucideIcon
-    isActive?: boolean
-    items?: {
-      title: string
-      url: string
-    }[]
-  }[]
-}) {
+const navMain = [
+  {
+    group: 'Ventas',
+    items: [
+      {
+        icon: PackageOpen,
+        title: 'Ordenes',
+        url: '/ordenes'
+      },
+      {
+        icon: CircleDollarSign,
+        title: 'Pagos',
+        url: '/pagos'
+      }
+    ]
+  },
+  {
+    group: 'Productos',
+    items: [
+      {
+        icon: Amphora,
+        title: 'Degustaciones',
+        url: '/degustaciones'
+      },
+      {
+        icon: Wine,
+        title: 'Vinos',
+        url: '/vinos'
+      }
+    ]
+  },
+  {
+    group: 'Clientes',
+    items: [
+      {
+        icon: Users,
+        title: 'Listado de Clientes',
+        url: '/clientes'
+      },
+      {
+        icon: Mail,
+        title: 'Mensajes de Contacto',
+        url: '/mensajes'
+      }
+    ]
+  },
+  {
+    group: 'Logística',
+    items: [
+      {
+        icon: Building,
+        title: 'Alojamientos',
+        url: '/alojamientos'
+      },
+      {
+        icon: TruckIcon,
+        title: 'Horarios de Entrega',
+        url: '/horarios'
+      }
+    ]
+  },
+  {
+    group: 'Contenidos',
+    items: [
+      {
+        icon: CircleHelp,
+        title: 'FAQs',
+        url: '/faqs'
+      }
+    ]
+  },
+  {
+    group: 'Configuraciones',
+    items: [
+      {
+        icon: CreditCard,
+        title: 'Métodos de Pago',
+        url: '/metodos-de-pago'
+      },
+      {
+        icon: Settings,
+        title: 'General',
+        url: '/configuraciones'
+      }
+    ]
+  }
+]
+
+export function NavMain() {
+  const [searchTerm, setSearchTerm] = useState('')
+  const { open } = useSidebar()
+
+  const filteredNav = navMain
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item) =>
+        item.title.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    }))
+    .filter((group) => group.items.length > 0)
+
   return (
-    <SidebarGroup>
-      <SidebarGroupLabel>E-commerce</SidebarGroupLabel>
+    <>
+      {open && (
+        <input
+          type="text"
+          placeholder="Buscar..."
+          className="bg-primary-white m-2 rounded-md border border-input p-2 text-sm"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      )}
       <SidebarMenu>
-        {items.map((item) => (
-          <Collapsible
-            key={item.title}
-            asChild
-            defaultOpen={item.isActive}
-            className="group/collapsible"
-          >
-            <SidebarMenuItem>
-              <CollapsibleTrigger asChild>
-                <SidebarMenuButton tooltip={item.title}>
-                  {item.icon && <item.icon />}
-                  <span>{item.title}</span>
-                  <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
-                </SidebarMenuButton>
-              </CollapsibleTrigger>
-              <CollapsibleContent>
-                <SidebarMenuSub>
-                  {item.items?.map((subItem) => (
-                    <SidebarMenuSubItem key={subItem.title}>
-                      <SidebarMenuSubButton asChild>
-                        <a href={subItem.url}>
-                          <span>{subItem.title}</span>
-                        </a>
-                      </SidebarMenuSubButton>
-                    </SidebarMenuSubItem>
-                  ))}
-                </SidebarMenuSub>
-              </CollapsibleContent>
-            </SidebarMenuItem>
-          </Collapsible>
+        {filteredNav.map((item) => (
+          <SidebarGroup key={item.group}>
+            <SidebarGroupLabel>{item.group}</SidebarGroupLabel>
+            <SidebarGroupContent>
+              {item.items?.map((subItem) => (
+                <SidebarMenuItem key={subItem.title}>
+                  <SidebarMenuButton asChild>
+                    <Link
+                      href={subItem.url}
+                      key={subItem.title}
+                      className="block w-full"
+                    >
+                      {subItem.icon && <subItem.icon />}
+                      <span>{subItem.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarGroupContent>
+          </SidebarGroup>
         ))}
       </SidebarMenu>
-    </SidebarGroup>
+    </>
   )
 }
