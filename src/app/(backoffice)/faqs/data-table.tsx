@@ -11,7 +11,13 @@ import {
   useReactTable,
   VisibilityState
 } from '@tanstack/react-table'
-import { ChevronDown, Columns3, PlusCircle } from 'lucide-react'
+import {
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Columns3,
+  PlusCircle
+} from 'lucide-react'
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 
@@ -24,6 +30,7 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 import {
   Select,
   SelectContent,
@@ -46,9 +53,15 @@ interface DataTableProps {
   columns: ColumnsDefinition
   data: FAQ[]
   pageCount: number
+  totalRecords: number // Add totalRecords prop
 }
 
-export function DataTable({ columns, data, pageCount }: DataTableProps) {
+export function DataTable({
+  columns,
+  data,
+  pageCount,
+  totalRecords
+}: DataTableProps) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -222,40 +235,50 @@ export function DataTable({ columns, data, pageCount }: DataTableProps) {
     }
   }, [searchValue, router, pathname, searchParams])
 
+  const startRecord =
+    (currentPage - 1) * Number(searchParams.get('perPage') || 10) + 1
+  const endRecord = Math.min(
+    currentPage * Number(searchParams.get('perPage') || 10),
+    totalRecords
+  )
+
   return (
     <div className="w-full">
-      <div className="flex items-center gap-2 py-4">
+      <div className="flex flex-col items-center gap-2 py-4 md:flex-row">
         <Input
           placeholder="Buscar"
           value={searchValue}
           onChange={(event) => setSearchValue(event.target.value)}
-          className="max-w-sm"
+          className="w-full flex-shrink-0 flex-grow md:max-w-44"
         />
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button
-              variant="outline"
-              className="flex w-fit items-center border-dashed"
-            >
-              <PlusCircle className="h-4 w-4" />
-              Estados
-              {selectedStatuses.length > 0 ? (
-                <>
-                  <div
-                    data-orientation="vertical"
-                    role="none"
-                    className="mx-2 h-4 w-[1px] shrink-0 bg-border"
-                  />
-                  {selectedStatuses.map((statusItem) => (
-                    <StatusBadge
-                      status={statusItem as FAQStatus}
-                      key={statusItem}
+            <ScrollArea className="max-w-full place-self-start md:place-self-center">
+              <Button
+                variant="outline"
+                className="flex w-fit items-center border-dashed"
+              >
+                <PlusCircle className="h-4 w-4" />
+                Estados
+                {selectedStatuses.length > 0 ? (
+                  <>
+                    <div
+                      data-orientation="vertical"
+                      role="none"
+                      className="mx-2 h-4 w-[1px] shrink-0 bg-border"
                     />
-                  ))}
-                </>
-              ) : null}
-            </Button>
+                    {selectedStatuses.map((statusItem) => (
+                      <StatusBadge
+                        status={statusItem as FAQStatus}
+                        key={statusItem}
+                      />
+                    ))}
+                  </>
+                ) : null}
+              </Button>
+              <ScrollBar orientation="horizontal" />
+            </ScrollArea>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="w-fit px-2">
             {['active', 'draft', 'inactive', 'deleted'].map((status) => {
@@ -333,7 +356,7 @@ export function DataTable({ columns, data, pageCount }: DataTableProps) {
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="ml-auto">
+            <Button variant="outline" className="ml-auto w-full md:w-fit">
               <Columns3 className="h-4 w-4" />
               Columnas <ChevronDown className="ml-2 h-4 w-4" />
             </Button>
@@ -418,47 +441,60 @@ export function DataTable({ columns, data, pageCount }: DataTableProps) {
         </Table>
       </div>
 
-      <div className="flex items-center justify-between space-x-2 py-4">
-        <div className="flex items-center gap-2">
-          <div className="text-sm text-muted-foreground">
-            Página {currentPage} de {pageCount}
-          </div>
-          <div className="flex items-center space-x-2">
-            <p className="text-sm font-medium">Registros por página</p>
-            <Select
-              value={searchParams.get('perPage') || '10'}
-              onValueChange={handlePerPageChange}
-            >
-              <SelectTrigger className="h-8 w-[70px]">
+      <div className="flex w-full items-center justify-end py-4">
+        <div className="flex items-center space-x-2">
+          <Select
+            value={searchParams.get('perPage') || '10'}
+            onValueChange={handlePerPageChange}
+          >
+            <SelectTrigger className="h-8 w-fit text-xs text-muted-foreground">
+              <span className="font-semibold">
                 {searchParams.get('perPage') || '10'}
-              </SelectTrigger>
-              <SelectContent side="top">
-                {[5, 10, 20, 50, 100].map((pageSize) => (
-                  <SelectItem key={pageSize} value={pageSize.toString()}>
-                    {pageSize}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              </span>{' '}
+              por página
+            </SelectTrigger>
+            <SelectContent side="top" className="text-xs">
+              {[10, 20, 50, 100].map((pageSize) => (
+                <SelectItem
+                  className="text-xs"
+                  key={pageSize}
+                  value={pageSize.toString()}
+                >
+                  {pageSize} por página
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <div className="flex items-center space-x-2 rounded-md  border border-input pl-2">
+            <div className="text-xs text-muted-foreground">
+              <span className="mr-1 font-semibold">
+                {startRecord}-{endRecord}
+              </span>
+              de {totalRecords}
+            </div>
+
+            <div className="flex items-center border-l border-input">
+              <Button
+                className="aspect-square p-0"
+                variant="ghost"
+                size="sm"
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage <= 1}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button
+                className="aspect-square p-0"
+                variant="ghost"
+                size="sm"
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage >= pageCount}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
-        </div>
-        <div className="space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => handlePageChange(currentPage - 1)}
-            disabled={currentPage <= 1}
-          >
-            Anterior
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => handlePageChange(currentPage + 1)}
-            disabled={currentPage >= pageCount}
-          >
-            Siguiente
-          </Button>
         </div>
       </div>
     </div>
