@@ -5,11 +5,13 @@ import { createClient } from '@/lib/supabase/server'
 import { columns } from './columns'
 import { CreateFAQButton } from './create-faq-button'
 import { CreateFAQSheet } from './create-faq-sheet'
+import { CreateFAQProvider } from './CreateFAQContext'
 import { DataTable } from './data-table'
 
 type FAQStatus = 'draft' | 'active' | 'inactive' | 'deleted'
 
 interface FAQFilters {
+  create?: string
   page?: number
   perPage?: number
   orderBy?: {
@@ -42,6 +44,7 @@ export default async function FAQsPage({
 }) {
   const awaitedSearchParams = await searchParams
   const params: FAQFilters = {
+    create: awaitedSearchParams.create as string,
     page: Number(awaitedSearchParams.page) || 1,
     perPage: Number(awaitedSearchParams.perPage) || 10,
     orderBy: {
@@ -76,21 +79,23 @@ export default async function FAQsPage({
   const pageCount = count ? Math.ceil(count / (params.perPage || 10)) : 0
 
   return (
-    <div className="flex w-full flex-1 flex-col gap-4 p-4">
-      <div className="mb-5 flex items-center justify-between">
-        <h2 className="text-2xl font-bold tracking-tight">FAQs</h2>
-        <CreateFAQButton />
+    <CreateFAQProvider isCreateOpenParams={params.create === 'true'}>
+      <div className="flex w-full flex-1 flex-col gap-4 p-4">
+        <div className="mb-5 flex items-center justify-between">
+          <h2 className="text-2xl font-bold tracking-tight">FAQs</h2>
+          <CreateFAQButton />
+        </div>
+        <div className="w-full overflow-auto">
+          <DataTable
+            columns={columns}
+            data={data || []}
+            pageCount={pageCount}
+            totalRecords={count || 0}
+          />
+        </div>
+        <CreateFAQSheet />
       </div>
-      <div className="w-full overflow-auto">
-        <DataTable
-          columns={columns}
-          data={data || []}
-          pageCount={pageCount}
-          totalRecords={count || 0}
-        />
-      </div>
-      <CreateFAQSheet />
-    </div>
+    </CreateFAQProvider>
   )
 }
 

@@ -1,17 +1,14 @@
 'use client'
 
-import { useRouter, useSearchParams } from 'next/navigation'
-
 import { Button } from '@/components/ui/button'
 
+import { useCreateFAQ } from './CreateFAQContext'
+
 export function CreateFAQButton() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
+  const { handleOpenChange } = useCreateFAQ()
 
   const handleClick = () => {
-    const current = new URLSearchParams(Array.from(searchParams.entries()))
-    current.set('create', 'true')
-    router.push(`?${current.toString()}`, { scroll: false })
+    handleOpenChange(true)
   }
 
   return <Button onClick={handleClick}>Crear nueva</Button>

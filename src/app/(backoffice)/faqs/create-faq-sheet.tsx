@@ -1,7 +1,5 @@
 'use client'
 
-import { useRouter, useSearchParams } from 'next/navigation'
-
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -22,19 +20,17 @@ import {
 } from '@/components/ui/sheet'
 import { Textarea } from '@/components/ui/textarea'
 
+import { useCreateFAQ } from './CreateFAQContext'
+
 export function CreateFAQSheet() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const isOpen = searchParams.has('create')
+  const { isCreateOpen, handleOpenChange } = useCreateFAQ()
 
   const onClose = () => {
-    const current = new URLSearchParams(Array.from(searchParams.entries()))
-    current.delete('create')
-    router.push(`?${current.toString()}`, { scroll: false })
+    handleOpenChange(false)
   }
 
   return (
-    <Sheet open={isOpen} onOpenChange={onClose}>
+    <Sheet open={isCreateOpen} onOpenChange={handleOpenChange}>
       <SheetContent className="flex flex-col data-[state=closed]:duration-200 data-[state=open]:duration-100">
         <SheetHeader>
           <SheetTitle>Crear nueva FAQ</SheetTitle>
