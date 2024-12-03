@@ -16,7 +16,7 @@ export default function Error({
   }, [error])
 
   return (
-    <div className="flex h-screen flex-col items-center justify-center space-y-4">
+    <div className="flex h-screen w-full flex-col items-center justify-center space-y-4">
       <h2 className="text-2xl font-bold">¡Algo salió mal!</h2>
       <p className="text-gray-600">Ha ocurrido un error inesperado.</p>
       <Button onClick={() => reset()} variant="outline">

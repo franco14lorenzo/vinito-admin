@@ -73,7 +73,7 @@ export default async function FAQsPage({
   )
 
   if (error) {
-    return <div>Error: {error.message}</div>
+    throw error
   }
 
   const pageCount = count ? Math.ceil(count / (params.perPage || 10)) : 0
