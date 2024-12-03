@@ -10,7 +10,7 @@ import { DataTable } from './data-table'
 
 type FAQStatus = 'draft' | 'active' | 'inactive' | 'deleted'
 
-interface FAQFilters {
+interface FAQParams {
   create?: string
   page?: number
   perPage?: number
@@ -43,7 +43,7 @@ export default async function FAQsPage({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
   const awaitedSearchParams = await searchParams
-  const params: FAQFilters = {
+  const params: FAQParams = {
     create: awaitedSearchParams.create as string,
     page: Number(awaitedSearchParams.page) || 1,
     perPage: Number(awaitedSearchParams.perPage) || 10,
@@ -99,7 +99,7 @@ export default async function FAQsPage({
   )
 }
 
-async function getFAQs(params: FAQFilters = {}, visibleColumns: string[]) {
+async function getFAQs(params: FAQParams = {}, visibleColumns: string[]) {
   const {
     page = 1,
     perPage = 10,
@@ -160,7 +160,6 @@ async function getFAQs(params: FAQFilters = {}, visibleColumns: string[]) {
     databaseColumns.includes(col)
   )
 
-  // Ensure 'id' is always included in the query
   const queryColumns = [...new Set(['id', ...filteredColumns])].join(',')
 
   let query = supabase.from('faqs').select(queryColumns)

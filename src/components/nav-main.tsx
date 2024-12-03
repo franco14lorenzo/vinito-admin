@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 
 import {
   SidebarGroup,
@@ -128,6 +129,8 @@ export function NavMain() {
     }))
     .filter((group) => group.items.length > 0)
 
+  const pathname = usePathname()
+
   return (
     <>
       {open && (
@@ -150,7 +153,13 @@ export function NavMain() {
                     <Link
                       href={subItem.url}
                       key={subItem.title}
-                      className="block w-full"
+                      className={`block w-full
+                        ${
+                          pathname === subItem.url
+                            ? 'pointer-events-none border bg-muted'
+                            : ''
+                        } rounded-md p-2 transition-colors duration-200
+                        `}
                     >
                       {subItem.icon && <subItem.icon />}
                       <span>{subItem.title}</span>
