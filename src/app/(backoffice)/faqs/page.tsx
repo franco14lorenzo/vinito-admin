@@ -91,23 +91,27 @@ export default async function FAQsPage({
       isCreateOpenParams={params.create === 'true'}
       isEditOpenParams={editId ? String(editId) : ''}
     >
-      <div className="flex w-full flex-1 flex-col gap-4 p-4">
-        <div className="mb-5 flex items-center justify-between">
-          <h2 className="text-2xl font-bold tracking-tight">FAQs</h2>
-          <CreateFAQButton />
+      <div className="flex h-[calc(100dvh-80px)] w-full flex-col gap-4 p-4">
+        <div className="flex-none">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold tracking-tight">FAQs</h2>
+            <CreateFAQButton />
+          </div>
         </div>
-        <div className="w-full overflow-auto">
-          <DataTable
-            adminId={session?.user?.id as string}
-            columns={columns}
-            data={data || []}
-            pageCount={pageCount}
-            totalRecords={count || 0}
-          />
+        <div className="relative min-h-0 flex-1">
+          <div className="absolute inset-0 overflow-y-auto">
+            <DataTable
+              adminId={session?.user?.id as string}
+              columns={columns}
+              data={data || []}
+              pageCount={pageCount}
+              totalRecords={count || 0}
+            />
+          </div>
         </div>
         <CreateFAQSheet
           adminId={session?.user?.id}
-          editId={editId ? String(editId) : undefined} // Ensure editId is passed correctly
+          editId={editId ? String(editId) : undefined}
         />
       </div>
     </CreateFAQProvider>

@@ -324,87 +324,57 @@ export function DataTable({
   )
 
   return (
-    <div className="w-full">
-      <div className="flex flex-col items-center gap-2 py-4 md:flex-row">
-        <Input
-          placeholder="Buscar"
-          value={searchValue}
-          onChange={(event) => setSearchValue(event.target.value)}
-          className="w-full flex-shrink-0 flex-grow md:max-w-44"
-        />
-
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <ScrollArea className="max-w-full place-self-start md:place-self-center">
-              <Button
-                variant="outline"
-                className="flex w-fit items-center border-dashed"
-              >
-                <PlusCircle className="h-4 w-4" />
-                Estados
-                {selectedStatuses.length > 0 ? (
-                  <>
-                    <div
-                      data-orientation="vertical"
-                      role="none"
-                      className="mx-2 h-4 w-[1px] shrink-0 bg-border"
-                    />
-                    {selectedStatuses.map((statusItem) => (
-                      <StatusBadge
-                        status={statusItem as FAQStatus}
-                        key={statusItem}
-                      />
-                    ))}
-                  </>
-                ) : null}
-              </Button>
-              <ScrollBar orientation="horizontal" />
-            </ScrollArea>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-fit px-2">
-            {['active', 'draft', 'inactive', 'deleted'].map((status) => {
-              const isChecked = selectedStatuses.includes(status)
-
-              return (
-                <DropdownMenuItem
-                  key={status}
-                  onClick={() => {
-                    let filterValue: string[] = [...selectedStatuses]
-                    if (isChecked) {
-                      filterValue = filterValue.filter((s) => s !== status)
-                    } else {
-                      filterValue.push(status)
-                    }
-
-                    table
-                      .getColumn('status')
-                      ?.setFilterValue(
-                        filterValue.length ? filterValue : undefined
-                      )
-
-                    const current = new URLSearchParams(
-                      Array.from(searchParams.entries())
-                    )
-                    if (filterValue.length) {
-                      current.set('status', filterValue.join(','))
-                    } else {
-                      current.delete('status')
-                    }
-                    current.set('page', '1')
-                    router.push(`${pathname}?${current.toString()}`, {
-                      scroll: false
-                    })
-                  }}
-                  className="flex items-center"
+    <div className="flex h-full flex-col">
+      {/* Filtros y controles */}
+      <div className="flex-none">
+        <div className="flex flex-col items-center gap-2 py-4 md:flex-row">
+          <Input
+            placeholder="Buscar"
+            value={searchValue}
+            onChange={(event) => setSearchValue(event.target.value)}
+            className="w-full flex-shrink-0 flex-grow md:max-w-44"
+          />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <ScrollArea className="max-w-full place-self-start md:place-self-center">
+                <Button
+                  variant="outline"
+                  className="flex w-fit items-center border-dashed"
                 >
-                  <Checkbox
-                    checked={isChecked}
-                    onCheckedChange={(checked) => {
+                  <PlusCircle className="h-4 w-4" />
+                  Estados
+                  {selectedStatuses.length > 0 ? (
+                    <>
+                      <div
+                        data-orientation="vertical"
+                        role="none"
+                        className="mx-2 h-4 w-[1px] shrink-0 bg-border"
+                      />
+                      {selectedStatuses.map((statusItem) => (
+                        <StatusBadge
+                          status={statusItem as FAQStatus}
+                          key={statusItem}
+                        />
+                      ))}
+                    </>
+                  ) : null}
+                </Button>
+                <ScrollBar orientation="horizontal" />
+              </ScrollArea>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-fit px-2">
+              {['active', 'draft', 'inactive', 'deleted'].map((status) => {
+                const isChecked = selectedStatuses.includes(status)
+
+                return (
+                  <DropdownMenuItem
+                    key={status}
+                    onClick={() => {
                       let filterValue: string[] = [...selectedStatuses]
-                      if (checked) {
-                        filterValue.push(status)
-                      } else {
+                      if (isChecked) {
                         filterValue = filterValue.filter((s) => s !== status)
+                      } else {
+                        filterValue.push(status)
                       }
 
                       table
@@ -426,154 +396,203 @@ export function DataTable({
                         scroll: false
                       })
                     }}
-                    className="mr-0.5"
-                  />
-                  <StatusBadge status={status as FAQStatus} />
-                </DropdownMenuItem>
-              )
-            })}
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="ml-auto w-full md:w-fit">
-              <Columns3 className="h-4 w-4" />
-              Columnas <ChevronDown className="ml-2 h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {table
-              .getAllColumns()
-              .filter((column) => column.getCanHide())
-              .map((column) => {
-                if (column.id === 'order') return null
-                return (
-                  <DropdownMenuItem
-                    key={column.id}
-                    className="flex items-center capitalize"
-                    onClick={() => {
-                      const newValue = !column.getIsVisible()
-                      column.toggleVisibility(newValue)
-                      handleColumnVisibilityChange(column.id!, newValue)
-                    }}
+                    className="flex items-center"
                   >
                     <Checkbox
-                      checked={column.getIsVisible()}
+                      checked={isChecked}
                       onCheckedChange={(checked) => {
-                        column.toggleVisibility(!!checked)
-                        handleColumnVisibilityChange(column.id!, !!checked)
+                        let filterValue: string[] = [...selectedStatuses]
+                        if (checked) {
+                          filterValue.push(status)
+                        } else {
+                          filterValue = filterValue.filter((s) => s !== status)
+                        }
+
+                        table
+                          .getColumn('status')
+                          ?.setFilterValue(
+                            filterValue.length ? filterValue : undefined
+                          )
+
+                        const current = new URLSearchParams(
+                          Array.from(searchParams.entries())
+                        )
+                        if (filterValue.length) {
+                          current.set('status', filterValue.join(','))
+                        } else {
+                          current.delete('status')
+                        }
+                        current.set('page', '1')
+                        router.push(`${pathname}?${current.toString()}`, {
+                          scroll: false
+                        })
                       }}
-                      className="mr-2"
+                      className="mr-0.5"
                     />
-                    {typeof column.columnDef.header === 'string'
-                      ? column.columnDef.header
-                      : column.id}
+                    <StatusBadge status={status as FAQStatus} />
                   </DropdownMenuItem>
                 )
               })}
-          </DropdownMenuContent>
-        </DropdownMenu>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="ml-auto w-full md:w-fit">
+                <Columns3 className="h-4 w-4" />
+                Columnas <ChevronDown className="ml-2 h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {table
+                .getAllColumns()
+                .filter((column) => column.getCanHide())
+                .map((column) => {
+                  if (column.id === 'order') return null
+                  return (
+                    <DropdownMenuItem
+                      key={column.id}
+                      className="flex items-center capitalize"
+                      onClick={() => {
+                        const newValue = !column.getIsVisible()
+                        column.toggleVisibility(newValue)
+                        handleColumnVisibilityChange(column.id!, newValue)
+                      }}
+                    >
+                      <Checkbox
+                        checked={column.getIsVisible()}
+                        onCheckedChange={(checked) => {
+                          column.toggleVisibility(!!checked)
+                          handleColumnVisibilityChange(column.id!, !!checked)
+                        }}
+                        className="mr-2"
+                      />
+                      {typeof column.columnDef.header === 'string'
+                        ? column.columnDef.header
+                        : column.id}
+                    </DropdownMenuItem>
+                  )
+                })}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                  </TableHead>
+      {/* Tabla con encabezado fijo y cuerpo scrolleable */}
+      <div className="relative flex-1 overflow-hidden">
+        {' '}
+        {/* Added relative positioning */}
+        <div className="relative h-full rounded-md border">
+          <div className="h-full overflow-auto">
+            <Table>
+              <TableHeader>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => (
+                      <TableHead
+                        key={header.id}
+                        style={{
+                          position: 'sticky',
+                          top: 0,
+                          background: 'white',
+                          zIndex: 20 // Ensure header stays on top
+                        }}
+                      >
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                      </TableHead>
+                    ))}
+                  </TableRow>
                 ))}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows.length > 0 ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
+              </TableHeader>
+              <TableBody>
+                {table.getRowModel().rows.length > 0 ? (
+                  table.getRowModel().rows.map((row) => (
+                    <TableRow key={row.id}>
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id}>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell
+                      colSpan={table.getVisibleLeafColumns().length}
+                      className="h-24 text-center"
+                    >
+                      No hay resultados.
                     </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={table.getVisibleLeafColumns().length}
-                  className="h-24 text-center"
-                >
-                  No hay resultados.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
       </div>
 
-      <div className="flex w-full items-center justify-end py-4">
-        <div className="flex items-center space-x-2">
-          <Select
-            value={searchParams.get('perPage') || '10'}
-            onValueChange={handlePerPageChange}
-          >
-            <SelectTrigger className="h-8 w-fit text-xs text-muted-foreground">
-              <span className="font-semibold">
-                {searchParams.get('perPage') || '10'}
-              </span>{' '}
-              por página
-            </SelectTrigger>
-            <SelectContent side="top" className="text-xs">
-              {[10, 20, 50, 100].map((pageSize) => (
-                <SelectItem
-                  className="text-xs"
-                  key={pageSize}
-                  value={pageSize.toString()}
+      <div className="flex-none pt-4">
+        <div className="flex w-full items-center justify-end">
+          <div className="flex items-center space-x-2">
+            <Select
+              value={searchParams.get('perPage') || '10'}
+              onValueChange={handlePerPageChange}
+            >
+              <SelectTrigger className="h-8 w-fit text-xs text-muted-foreground">
+                <span className="font-semibold">
+                  {searchParams.get('perPage') || '10'}
+                </span>{' '}
+                por página
+              </SelectTrigger>
+              <SelectContent side="top" className="text-xs">
+                {[10, 20, 50, 100].map((pageSize) => (
+                  <SelectItem
+                    className="text-xs"
+                    key={pageSize}
+                    value={pageSize.toString()}
+                  >
+                    {pageSize} por página
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <div className="flex items-center space-x-2 rounded-md border border-input pl-2">
+              <div className="text-xs text-muted-foreground">
+                <span className="mr-1 font-semibold">
+                  {startRecord}-{endRecord}
+                </span>
+                de {totalRecords}
+              </div>
+
+              <div className="flex items-center border-l border-input">
+                <Button
+                  className="aspect-square p-0"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage <= 1}
                 >
-                  {pageSize} por página
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <div className="flex items-center space-x-2 rounded-md  border border-input pl-2">
-            <div className="text-xs text-muted-foreground">
-              <span className="mr-1 font-semibold">
-                {startRecord}-{endRecord}
-              </span>
-              de {totalRecords}
-            </div>
-
-            <div className="flex items-center border-l border-input">
-              <Button
-                className="aspect-square p-0"
-                variant="ghost"
-                size="sm"
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage <= 1}
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <Button
-                className="aspect-square p-0"
-                variant="ghost"
-                size="sm"
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage >= pageCount}
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  className="aspect-square p-0"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage >= pageCount}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </div>
         </div>
