@@ -1,6 +1,7 @@
 -- Seed data for the admin table
 INSERT INTO admin (name, surname, email) VALUES
-('Franco', 'Lorenzo', 'franco14lorenzo@gmail.com');
+('Franco', 'Lorenzo', 'franco14lorenzo@gmail.com'),
+('Admin', 'User', 'francolorenzo@biamex.com');
 
 -- Seed data for the wines table
 INSERT INTO wines (name, description, winery, year, variety, volume_ml, price, cost_usd_blue, status, created_by, stock) VALUES

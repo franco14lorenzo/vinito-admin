@@ -46,7 +46,7 @@ interface CreateFAQSheetProps {
 const faqFormSchema = z.object({
   question: z.string().min(1, 'La pregunta es requerida'),
   answer: z.string().min(1, 'La respuesta es requerida'),
-  order: z.coerce.number().min(0, 'El orden debe ser un número positivo'),
+  order: z.coerce.number().optional(), // Allow order to be optional
   status: z.enum(['draft', 'active', 'inactive', 'deleted'])
 })
 
@@ -62,7 +62,7 @@ export function CreateFAQSheet({ editId, adminId }: CreateFAQSheetProps) {
     defaultValues: {
       question: '',
       answer: '',
-      order: 0,
+      order: undefined, // Set default value to undefined
       status: 'draft'
     }
   })
@@ -90,7 +90,7 @@ export function CreateFAQSheet({ editId, adminId }: CreateFAQSheetProps) {
       form.reset({
         question: '',
         answer: '',
-        order: 0,
+        order: undefined, // Set default value to undefined
         status: 'draft'
       })
     }
@@ -104,7 +104,7 @@ export function CreateFAQSheet({ editId, adminId }: CreateFAQSheetProps) {
           .update({
             question: data.question,
             answer: data.answer,
-            order: data.order,
+            order: data.order ?? undefined, // Use undefined if order is not provided
             status: data.status,
             updated_at: new Date().toISOString(),
             updated_by: Number(adminId)
@@ -122,6 +122,7 @@ export function CreateFAQSheet({ editId, adminId }: CreateFAQSheetProps) {
           .from('faqs')
           .insert({
             ...data,
+            order: data.order ?? undefined, // Use undefined if order is not provided
             created_at: new Date().toISOString(),
             created_by: Number(adminId) // Add adminId to create operation
           })
@@ -207,9 +208,9 @@ export function CreateFAQSheet({ editId, adminId }: CreateFAQSheetProps) {
                       <Input
                         type="number"
                         {...field}
-                        value={field.value}
+                        value={field.value ?? ''} // Set value to empty string if undefined
                         onChange={(e) => field.onChange(e.target.value)}
-                        placeholder="Ingresa el orden"
+                        placeholder="Por defecto"
                       />
                     </FormControl>
                     <FormMessage />
