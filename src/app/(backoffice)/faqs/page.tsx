@@ -12,6 +12,7 @@ type FAQStatus = 'draft' | 'active' | 'inactive' | 'deleted'
 
 interface FAQParams {
   create?: string
+  edit?: string
   page?: number
   perPage?: number
   orderBy?: {
@@ -45,6 +46,7 @@ export default async function FAQsPage({
   const awaitedSearchParams = await searchParams
   const params: FAQParams = {
     create: awaitedSearchParams.create as string,
+    edit: awaitedSearchParams.edit as string,
     page: Number(awaitedSearchParams.page) || 1,
     perPage: Number(awaitedSearchParams.perPage) || 10,
     orderBy: {
@@ -67,6 +69,9 @@ export default async function FAQsPage({
     search: (awaitedSearchParams.search as string) || ''
   }
 
+  // Ensure editId is a valid number
+  const editId = params.edit ? parseInt(params.edit, 10) : undefined
+
   const { data, error, count } = await getFAQs(
     params,
     params.visibleColumns || []
@@ -79,7 +84,10 @@ export default async function FAQsPage({
   const pageCount = count ? Math.ceil(count / (params.perPage || 10)) : 0
 
   return (
-    <CreateFAQProvider isCreateOpenParams={params.create === 'true'}>
+    <CreateFAQProvider
+      isCreateOpenParams={params.create === 'true'}
+      isEditOpenParams={editId ? String(editId) : ''}
+    >
       <div className="flex w-full flex-1 flex-col gap-4 p-4">
         <div className="mb-5 flex items-center justify-between">
           <h2 className="text-2xl font-bold tracking-tight">FAQs</h2>
@@ -93,7 +101,8 @@ export default async function FAQsPage({
             totalRecords={count || 0}
           />
         </div>
-        <CreateFAQSheet />
+        <CreateFAQSheet editId={editId ? String(editId) : undefined} />{' '}
+        {/* Pass editId to CreateFAQSheet */}
       </div>
     </CreateFAQProvider>
   )
