@@ -52,6 +52,7 @@ import {
   TableHeader,
   TableRow
 } from '@/components/ui/table'
+import { createClient } from '@/lib/supabase/client'
 
 import type { ColumnsDefinition, FAQ, FAQColumn, FAQStatus } from './columns'
 import { StatusBadge } from './columns'
@@ -61,14 +62,18 @@ interface DataTableProps {
   columns: ColumnsDefinition
   data: FAQ[]
   pageCount: number
-  totalRecords: number // Add totalRecords prop
+  totalRecords: number
+  adminId: string
 }
+
+const supabase = createClient()
 
 export function DataTable({
   columns,
   data,
   pageCount,
-  totalRecords
+  totalRecords,
+  adminId
 }: DataTableProps) {
   const router = useRouter()
   const pathname = usePathname()
@@ -206,6 +211,26 @@ export function DataTable({
     handleOpenChange(true, String(id)) // Pass editId to handleOpenChange
   }
 
+  const handleDelete = async (id: number) => {
+    const { error } = await supabase
+      .from('faqs')
+      .update({
+        status: 'deleted',
+        updated_by: Number(adminId),
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+
+    if (error) {
+      console.error('Error deleting FAQ:', error)
+      toast.error('Error eliminando la FAQ')
+      return
+    }
+
+    toast.success('FAQ eliminada correctamente')
+    router.refresh()
+  }
+
   const table = useReactTable({
     data,
     columns: columns.map((column: FAQColumn) => {
@@ -237,7 +262,7 @@ export function DataTable({
                   <DropdownMenuItem onClick={() => handleEdit(faq.id)}>
                     <Pencil className="h-4 w-4" /> Editar
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleDelete(faq.id)}>
                     <Trash className="h-4 w-4" /> Eliminar
                   </DropdownMenuItem>
                 </DropdownMenuContent>

@@ -38,8 +38,21 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
 
       console.log('Admin signed in:', data)
+      user.id = data.id.toString()
 
       return true
+    },
+    async session({ session, token }) {
+      if (token?.id) {
+        session.user.id = token.id as string
+      }
+      return session
+    },
+    async jwt({ token, user }) {
+      if (user?.id) {
+        token.id = user.id
+      }
+      return token
     },
     async authorized({ auth }) {
       return !!auth?.user
@@ -55,7 +68,7 @@ async function getAdminsByEmail(email: string) {
   const supabase = await createClient()
   const adminByEmailQuery = supabase
     .from('admin')
-    .select('email')
+    .select('id, email')
     .eq('email', email)
     .single()
 

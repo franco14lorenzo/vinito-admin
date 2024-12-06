@@ -1,5 +1,6 @@
 import { PostgrestError } from '@supabase/supabase-js'
 
+import { auth } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
 
 import { columns } from './columns'
@@ -83,6 +84,8 @@ export default async function FAQsPage({
 
   const pageCount = count ? Math.ceil(count / (params.perPage || 10)) : 0
 
+  const session = await auth()
+
   return (
     <CreateFAQProvider
       isCreateOpenParams={params.create === 'true'}
@@ -95,14 +98,17 @@ export default async function FAQsPage({
         </div>
         <div className="w-full overflow-auto">
           <DataTable
+            adminId={session?.user?.id as string}
             columns={columns}
             data={data || []}
             pageCount={pageCount}
             totalRecords={count || 0}
           />
         </div>
-        <CreateFAQSheet editId={editId ? String(editId) : undefined} />{' '}
-        {/* Pass editId to CreateFAQSheet */}
+        <CreateFAQSheet
+          adminId={session?.user?.id}
+          editId={editId ? String(editId) : undefined} // Ensure editId is passed correctly
+        />
       </div>
     </CreateFAQProvider>
   )

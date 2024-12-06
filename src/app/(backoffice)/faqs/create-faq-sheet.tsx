@@ -1,10 +1,21 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
+import { ControllerRenderProps, useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { toast } from 'sonner'
+import * as z from 'zod'
 
 import { Button } from '@/components/ui/button'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage
+} from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
@@ -16,6 +27,7 @@ import { Separator } from '@/components/ui/separator'
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetFooter,
   SheetHeader,
   SheetTitle
@@ -23,109 +35,236 @@ import {
 import { Textarea } from '@/components/ui/textarea'
 import { createClient } from '@/lib/supabase/client'
 
+import { StatusBadge } from './columns'
 import { useCreateFAQ } from './CreateFAQContext'
-import { FAQ } from './page'
 
 interface CreateFAQSheetProps {
   editId?: string
+  adminId?: string | null
 }
 
-export function CreateFAQSheet({ editId }: CreateFAQSheetProps) {
+const faqFormSchema = z.object({
+  question: z.string().min(1, 'La pregunta es requerida'),
+  answer: z.string().min(1, 'La respuesta es requerida'),
+  order: z.coerce.number().min(0, 'El orden debe ser un número positivo'),
+  status: z.enum(['draft', 'active', 'inactive', 'deleted'])
+})
+
+type FAQFormValues = z.infer<typeof faqFormSchema>
+
+const supabase = createClient()
+
+export function CreateFAQSheet({ editId, adminId }: CreateFAQSheetProps) {
   const { isCreateOpen, handleOpenChange } = useCreateFAQ()
-  const [faq, setFaq] = useState<FAQ | null>(null)
+
+  const form = useForm<FAQFormValues>({
+    resolver: zodResolver(faqFormSchema),
+    defaultValues: {
+      question: '',
+      answer: '',
+      order: 0,
+      status: 'draft'
+    }
+  })
 
   useEffect(() => {
     if (editId) {
       const fetchFAQ = async () => {
-        const supabase = await createClient()
         const { data, error } = await supabase
           .from('faqs')
           .select('*')
           .eq('id', editId)
           .single()
+
         if (error) {
           console.error('Error fetching FAQ:', error)
-        } else {
-          setFaq(data)
+          return
         }
+
+        const { status, ...rest } = data
+
+        form.reset({ status, ...rest })
       }
       fetchFAQ()
     } else {
-      setFaq(null)
+      form.reset({
+        question: '',
+        answer: '',
+        order: 0,
+        status: 'draft'
+      })
     }
-  }, [editId])
+  }, [editId, form])
 
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault()
-    // Handle form submission for create or edit
-  }
+  const onSubmit = async (data: FAQFormValues) => {
+    try {
+      if (editId) {
+        const { error } = await supabase
+          .from('faqs')
+          .update({
+            question: data.question,
+            answer: data.answer,
+            order: data.order,
+            status: data.status,
+            updated_at: new Date().toISOString(),
+            updated_by: Number(adminId)
+          })
+          .eq('id', editId)
+          .select()
 
-  const onClose = () => {
-    handleOpenChange(false)
+        if (error) {
+          console.error('Error updating FAQ:', error)
+          toast.error('No se pudo actualizar la FAQ')
+          return
+        }
+      } else {
+        const { error } = await supabase
+          .from('faqs')
+          .insert({
+            ...data,
+            created_at: new Date().toISOString(),
+            created_by: Number(adminId) // Add adminId to create operation
+          })
+          .select()
+
+        if (error) {
+          console.error('Error creating FAQ:', error)
+          toast.error('No se pudo crear la FAQ')
+          return
+        }
+      }
+
+      toast.success(`FAQ ${editId ? 'actualizada' : 'creada'} correctamente`)
+      handleOpenChange(false)
+      form.reset()
+    } catch (error) {
+      console.error('Error:', error)
+      toast.error('Ocurrió un error inesperado')
+    }
   }
 
   return (
     <Sheet open={isCreateOpen} onOpenChange={handleOpenChange}>
-      <SheetContent className="flex flex-col data-[state=closed]:duration-200 data-[state=open]:duration-100">
+      <SheetContent className="flex flex-col">
         <SheetHeader>
           <SheetTitle>{editId ? 'Editar FAQ' : 'Crear nueva FAQ'}</SheetTitle>
+          <SheetDescription className="sr-only">
+            {editId
+              ? 'Edita los detalles de la FAQ existente.'
+              : 'Completa el formulario para crear una nueva FAQ.'}
+          </SheetDescription>
         </SheetHeader>
         <Separator className="my-4" />
-        <div className="flex flex-1 flex-col overflow-y-auto">
-          <form onSubmit={handleSubmit} className="contents">
-            <div className="flex flex-1 flex-col justify-start gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="question">Pregunta</Label>
-                <Input
-                  id="question"
-                  name="question"
-                  defaultValue={faq?.question || ''}
-                  placeholder="Ingresa la pregunta"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="answer">Respuesta</Label>
-                <Textarea
-                  id="answer"
-                  name="answer"
-                  className="h-32"
-                  defaultValue={faq?.answer || ''}
-                  placeholder="Ingresa la respuesta"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="order">Orden</Label>
-                <Input
-                  type="number"
-                  id="order"
-                  name="order"
-                  defaultValue={faq?.order || ''}
-                  placeholder="Ingresa el orden"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="status">Estado</Label>
-                <Select defaultValue={faq?.status || 'draft'}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecciona un estado" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="draft">Borrador</SelectItem>
-                    <SelectItem value="active">Activo</SelectItem>
-                    <SelectItem value="inactive">Inactivo</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="flex flex-1 flex-col justify-between"
+          >
+            <div className="flex flex-col space-y-4">
+              <FormField
+                control={form.control}
+                name="question"
+                render={({
+                  field
+                }: {
+                  field: ControllerRenderProps<FAQFormValues, 'question'>
+                }) => (
+                  <FormItem>
+                    <FormLabel>Pregunta</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Ingresa la pregunta" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="answer"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Respuesta</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        {...field}
+                        className="h-32"
+                        placeholder="Ingresa la respuesta"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="order"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Orden</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        {...field}
+                        value={field.value}
+                        onChange={(e) => field.onChange(e.target.value)}
+                        placeholder="Ingresa el orden"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Estado</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecciona un estado" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="draft">
+                          <StatusBadge status="draft" />
+                        </SelectItem>
+                        <SelectItem value="active">
+                          <StatusBadge status="active" />
+                        </SelectItem>
+                        <SelectItem value="inactive">
+                          <StatusBadge status="inactive" />
+                        </SelectItem>
+                        <SelectItem value="deleted">
+                          <StatusBadge status="deleted" />
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
-            <Separator className="my-4" />
-            <SheetFooter>
-              <Button variant="outline" onClick={onClose}>
-                Cancelar
-              </Button>
-              <Button type="submit">{editId ? 'Editar' : 'Crear'} FAQ</Button>
-            </SheetFooter>
+            <div className="flex flex-col">
+              <Separator className="my-4" />
+              <SheetFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => handleOpenChange(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button type="submit">
+                  {editId ? 'Actualizar' : 'Crear'} FAQ
+                </Button>
+              </SheetFooter>
+            </div>
           </form>
-        </div>
+        </Form>
       </SheetContent>
     </Sheet>
   )

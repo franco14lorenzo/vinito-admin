@@ -8,7 +8,12 @@ import { PanelLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
-import { Sheet, SheetContent } from '@/components/ui/sheet'
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetTitle
+} from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
   Tooltip,
@@ -195,6 +200,10 @@ const Sidebar = React.forwardRef<
     if (isMobile) {
       return (
         <Sheet open={openMobile} onOpenChange={setOpenMobile} {...props}>
+          <SheetTitle className="sr-only">Sidebar</SheetTitle>
+          <SheetDescription className="sr-only">
+            {state === 'expanded' ? 'Collapse Sidebar' : 'Expand Sidebar'}
+          </SheetDescription>
           <SheetContent
             data-sidebar="sidebar"
             data-mobile="true"
