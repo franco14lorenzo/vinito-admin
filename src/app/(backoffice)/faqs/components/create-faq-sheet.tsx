@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { ControllerRenderProps, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
@@ -34,6 +34,7 @@ import {
   SheetHeader,
   SheetTitle
 } from '@/components/ui/sheet'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Textarea } from '@/components/ui/textarea'
 import { createClient } from '@/lib/supabase/client'
 
@@ -55,41 +56,48 @@ const supabase = createClient()
 
 export function CreateFAQSheet({ editId, adminId }: CreateFAQSheetProps) {
   const { isCreateOpen, handleOpenChange } = useCreateFAQ()
+  const [isLoading, setIsLoading] = useState(false)
 
   const form = useForm<FAQFormValues>({
     resolver: zodResolver(faqFormSchema),
     defaultValues: {
       question: '',
       answer: '',
-      order: undefined, // Set default value to undefined
+      order: undefined,
       status: 'draft'
     }
   })
 
   useEffect(() => {
     if (editId) {
+      setIsLoading(true)
       const fetchFAQ = async () => {
-        const { data, error } = await supabase
-          .from('faqs')
-          .select('*')
-          .eq('id', editId)
-          .single()
+        try {
+          const { data, error } = await supabase
+            .from('faqs')
+            .select('*')
+            .eq('id', editId)
+            .single()
 
-        if (error) {
-          console.error('Error fetching FAQ:', error)
-          return
+          if (error) {
+            console.error('Error fetching FAQ:', error)
+            return
+          }
+
+          const { status, ...rest } = data
+          form.reset({ status, ...rest })
+        } catch (error) {
+          console.error('Error:', error)
+        } finally {
+          setIsLoading(false)
         }
-
-        const { status, ...rest } = data
-
-        form.reset({ status, ...rest })
       }
       fetchFAQ()
     } else {
       form.reset({
         question: '',
         answer: '',
-        order: undefined, // Set default value to undefined
+        order: undefined,
         status: 'draft'
       })
     }
@@ -143,6 +151,130 @@ export function CreateFAQSheet({ editId, adminId }: CreateFAQSheetProps) {
     }
   }
 
+  const renderFormContent = () => {
+    if (editId && isLoading) {
+      return (
+        <div className="flex flex-col space-y-4">
+          <div className="space-y-2">
+            <Skeleton className="h-5 w-20" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+          <div className="space-y-2">
+            <Skeleton className="h-5 w-20" />
+            <Skeleton className="h-32 w-full" />
+          </div>
+          <div className="space-y-2">
+            <Skeleton className="h-5 w-20" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+          <div className="space-y-2">
+            <Skeleton className="h-5 w-20" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+        </div>
+      )
+    }
+
+    return (
+      <div className="flex flex-col space-y-4">
+        <FormField
+          control={form.control}
+          name="question"
+          render={({
+            field
+          }: {
+            field: ControllerRenderProps<FAQFormValues, 'question'>
+          }) => (
+            <FormItem>
+              <FormLabel>Pregunta</FormLabel>
+              <FormControl>
+                <Input
+                  {...field}
+                  placeholder="Ingresa la pregunta"
+                  disabled={isLoading}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="answer"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Respuesta</FormLabel>
+              <FormControl>
+                <Textarea
+                  {...field}
+                  className="h-32"
+                  placeholder="Ingresa la respuesta"
+                  disabled={isLoading}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="order"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Orden</FormLabel>
+              <FormControl>
+                <Input
+                  type="number"
+                  {...field}
+                  value={field.value ?? ''} // Set value to empty string if undefined
+                  onChange={(e) => field.onChange(e.target.value)}
+                  placeholder="Por defecto"
+                  disabled={isLoading}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="status"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Estado</FormLabel>
+              <Select
+                onValueChange={field.onChange}
+                value={field.value}
+                disabled={isLoading}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecciona un estado" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="draft">
+                    <StatusBadge status="draft" />
+                  </SelectItem>
+                  <SelectItem value="active">
+                    <StatusBadge status="active" />
+                  </SelectItem>
+                  <SelectItem value="inactive">
+                    <StatusBadge status="inactive" />
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+    )
+  }
+
   return (
     <Sheet open={isCreateOpen} onOpenChange={handleOpenChange}>
       <SheetContent className="flex flex-col">
@@ -160,103 +292,20 @@ export function CreateFAQSheet({ editId, adminId }: CreateFAQSheetProps) {
             onSubmit={form.handleSubmit(onSubmit)}
             className="flex flex-1 flex-col justify-between"
           >
-            <div className="flex flex-col space-y-4">
-              <FormField
-                control={form.control}
-                name="question"
-                render={({
-                  field
-                }: {
-                  field: ControllerRenderProps<FAQFormValues, 'question'>
-                }) => (
-                  <FormItem>
-                    <FormLabel>Pregunta</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="Ingresa la pregunta" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="answer"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Respuesta</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        {...field}
-                        className="h-32"
-                        placeholder="Ingresa la respuesta"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="order"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Orden</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        {...field}
-                        value={field.value ?? ''} // Set value to empty string if undefined
-                        onChange={(e) => field.onChange(e.target.value)}
-                        placeholder="Por defecto"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="status"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Estado</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecciona un estado" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="draft">
-                          <StatusBadge status="draft" />
-                        </SelectItem>
-                        <SelectItem value="active">
-                          <StatusBadge status="active" />
-                        </SelectItem>
-                        <SelectItem value="inactive">
-                          <StatusBadge status="inactive" />
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+            {renderFormContent()}
             <div className="flex flex-col">
               <Separator className="my-4" />
               <SheetFooter>
                 <Button
                   variant="outline"
                   onClick={() => handleOpenChange(false)}
+                  disabled={isLoading}
                 >
                   Cancelar
                 </Button>
-                <Button type="submit">
-                  {editId ? 'Actualizar' : 'Crear'} FAQ
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? 'Cargando...' : editId ? 'Actualizar' : 'Crear'}{' '}
+                  FAQ
                 </Button>
               </SheetFooter>
             </div>
