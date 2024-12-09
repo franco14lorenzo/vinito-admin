@@ -39,15 +39,20 @@ interface SortableHeaderProps {
 function SortableHeader({ column, label }: SortableHeaderProps) {
   const isAsc = column.getIsSorted() === 'asc'
   const isDesc = column.getIsSorted() === 'desc'
+  const isSorted = isAsc || isDesc
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="flex items-center gap-1">
+        <Button variant={'ghost'} className="flex items-center gap-1">
           {label}
-          {isAsc && <ArrowDown className="h-4 w-4" />}
-          {isDesc && <ArrowUp className="h-4 w-4" />}
-          {!isAsc && !isDesc && <ArrowUp className="h-4 w-4" />}
+          <div className="ml-1 flex items-center">
+            {isAsc && <ArrowUp className="h-4 w-4 text-muted-foreground/30" />}
+            {isDesc && (
+              <ArrowDown className="h-4 w-4 text-muted-foreground/30" />
+            )}
+            {!isSorted && <ArrowUp className="h-4 w-4" />}
+          </div>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start">
@@ -56,7 +61,7 @@ function SortableHeader({ column, label }: SortableHeaderProps) {
           disabled={isAsc}
           className="flex items-center gap-2"
         >
-          <ArrowDown className="h-4 w-4" />
+          <ArrowUp className="h-4 w-4" />
           Ascendente
         </DropdownMenuItem>
         <DropdownMenuItem
@@ -64,9 +69,20 @@ function SortableHeader({ column, label }: SortableHeaderProps) {
           disabled={isDesc}
           className="flex items-center gap-2"
         >
-          <ArrowUp className="h-4 w-4" />
+          <ArrowDown className="h-4 w-4" />
           Descendente
         </DropdownMenuItem>
+        {isSorted && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={() => column.clearSorting()}
+              className="flex items-center gap-2"
+            >
+              Quitar orden
+            </DropdownMenuItem>
+          </>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   )
