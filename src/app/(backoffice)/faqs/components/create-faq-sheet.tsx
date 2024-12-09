@@ -6,6 +6,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
 import * as z from 'zod'
 
+import { StatusBadge } from '@/app/(backoffice)/faqs/components/columns'
+import { useCreateFAQ } from '@/app/(backoffice)/faqs/components/create-faq-context'
 import { Button } from '@/components/ui/button'
 import {
   Form,
@@ -34,9 +36,6 @@ import {
 } from '@/components/ui/sheet'
 import { Textarea } from '@/components/ui/textarea'
 import { createClient } from '@/lib/supabase/client'
-
-import { StatusBadge } from './columns'
-import { useCreateFAQ } from './CreateFAQContext'
 
 interface CreateFAQSheetProps {
   editId?: string
@@ -239,9 +238,6 @@ export function CreateFAQSheet({ editId, adminId }: CreateFAQSheetProps) {
                         </SelectItem>
                         <SelectItem value="inactive">
                           <StatusBadge status="inactive" />
-                        </SelectItem>
-                        <SelectItem value="deleted">
-                          <StatusBadge status="deleted" />
                         </SelectItem>
                       </SelectContent>
                     </Select>

@@ -1,8 +1,7 @@
 'use client'
 
+import { useCreateFAQ } from '@/app/(backoffice)/faqs/components/create-faq-context'
 import { Button } from '@/components/ui/button'
-
-import { useCreateFAQ } from './CreateFAQContext'
 
 export function CreateFAQButton() {
   const { handleOpenChange } = useCreateFAQ()

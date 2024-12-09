@@ -8,8 +8,8 @@ interface CreateFAQContextProps {
   isCreateOpen: boolean
   setIsCreateOpen: (isOpen: boolean) => void
   handleOpenChange: (isOpen: boolean, editId?: string) => void
-  isEditOpen: string // Add isEditOpen to context
-  setIsEditOpen: (isOpen: string) => void // Add setIsEditOpen to context
+  isEditOpen: string
+  setIsEditOpen: (isOpen: string) => void
 }
 
 const CreateFAQContext = createContext<CreateFAQContextProps | undefined>(
@@ -32,7 +32,7 @@ export const CreateFAQProvider = ({
 
   const handleOpenChange = (isOpen: boolean, editId?: string) => {
     setIsCreateOpen(isOpen)
-    setIsEditOpen(editId || '') // Set editId when opening
+    setIsEditOpen(editId || '')
 
     const searchParams = new URLSearchParams(window.location.search)
     const current = new URLSearchParams(searchParams)
@@ -56,8 +56,8 @@ export const CreateFAQProvider = ({
         isCreateOpen,
         setIsCreateOpen,
         handleOpenChange,
-        isEditOpen, // Provide isEditOpen
-        setIsEditOpen // Provide setIsEditOpen
+        isEditOpen,
+        setIsEditOpen
       }}
     >
       {children}

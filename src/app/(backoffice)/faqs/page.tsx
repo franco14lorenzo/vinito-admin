@@ -1,43 +1,17 @@
 import { PostgrestError } from '@supabase/supabase-js'
 
+import { columns } from '@/app/(backoffice)/faqs/components/columns'
+import { CreateFAQButton } from '@/app/(backoffice)/faqs/components/create-faq-button'
+import { CreateFAQProvider } from '@/app/(backoffice)/faqs/components/create-faq-context'
+import { CreateFAQSheet } from '@/app/(backoffice)/faqs/components/create-faq-sheet'
+import { DataTable } from '@/app/(backoffice)/faqs/components/data-table'
+import {
+  DEFAULT_COLUMNS,
+  DEFAULT_ORDER
+} from '@/app/(backoffice)/faqs/constants'
+import { FAQ, FAQParams, FAQStatus } from '@/app/(backoffice)/faqs/types'
 import { auth } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
-
-import { columns } from './columns'
-import { CreateFAQButton } from './create-faq-button'
-import { CreateFAQSheet } from './create-faq-sheet'
-import { CreateFAQProvider } from './CreateFAQContext'
-import { DataTable } from './data-table'
-
-type FAQStatus = 'draft' | 'active' | 'inactive' | 'deleted'
-
-interface FAQParams {
-  create?: string
-  edit?: string
-  page?: number
-  perPage?: number
-  orderBy?: {
-    column: string
-    ascending?: boolean
-  }
-  filters?: {
-    question?: string
-    answer?: string
-    order?: number
-    status?: FAQStatus | FAQStatus[]
-  }
-  visibleColumns?: string[]
-  search?: string
-}
-
-export type FAQ = {
-  id: number
-  question: string
-  answer: string
-  order: number
-  status: FAQStatus
-  created_at: string
-}
 
 export default async function FAQsPage({
   searchParams
@@ -66,11 +40,10 @@ export default async function FAQsPage({
     },
     visibleColumns: awaitedSearchParams.columns
       ? (awaitedSearchParams.columns as string).split(',').filter(Boolean)
-      : ['order', 'question', 'answer', 'status'],
+      : DEFAULT_COLUMNS,
     search: (awaitedSearchParams.search as string) || ''
   }
 
-  // Ensure editId is a valid number
   const editId = params.edit ? parseInt(params.edit, 10) : undefined
 
   const { data, error, count } = await getFAQs(
@@ -122,7 +95,7 @@ async function getFAQs(params: FAQParams = {}, visibleColumns: string[]) {
   const {
     page = 1,
     perPage = 10,
-    orderBy = { column: 'order', ascending: true },
+    orderBy = DEFAULT_ORDER,
     filters = {}
   } = params
 
@@ -134,8 +107,9 @@ async function getFAQs(params: FAQParams = {}, visibleColumns: string[]) {
 
   const { order: orderFilter, ...otherFilters } = filters
   if (orderFilter !== undefined) {
-    countQuery.eq('"order"', orderFilter)
+    countQuery.eq('order', orderFilter)
   }
+
   Object.entries(otherFilters).forEach(([key, value]) => {
     if (value !== undefined) {
       if (key === 'status' && Array.isArray(value)) {
@@ -166,20 +140,12 @@ async function getFAQs(params: FAQParams = {}, visibleColumns: string[]) {
     return { data: [], error: null, count: 0 }
   }
 
-  const databaseColumns = [
-    'id',
-    'question',
-    'answer',
-    'order',
-    'status',
-    'created_at'
-  ]
-
   const filteredColumns = visibleColumns.filter((col) =>
-    databaseColumns.includes(col)
+    DEFAULT_COLUMNS.includes(col)
   )
 
   const queryColumns = [...new Set(['id', ...filteredColumns])].join(',')
+  console.log('queryColumns', queryColumns)
 
   let query = supabase.from('faqs').select(queryColumns)
 

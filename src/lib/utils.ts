@@ -28,3 +28,14 @@ export function getBackgroundColorOfEnvironment(environment: string) {
 export function capitalize(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1)
 }
+
+export function formatDate(dateString: string): string {
+  return new Date(dateString).toLocaleString('es-AR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  })
+}

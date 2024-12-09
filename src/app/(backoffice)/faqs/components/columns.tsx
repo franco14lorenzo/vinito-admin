@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 
+import type { FAQ, FAQStatus } from '@/app/(backoffice)/faqs/types'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -25,24 +26,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
+import { formatDate } from '@/lib/utils'
 
-export type FAQStatus = 'draft' | 'active' | 'inactive' | 'deleted'
-
-export type FAQ = {
-  id: number
-  question: string
-  answer: string
-  order: number
-  status: FAQStatus
-  created_at: string
-}
-
-// Definir el tipo específico para las columnas
 export type FAQColumn = ColumnDef<FAQ, unknown> & {
   accessorKey?: keyof FAQ
 }
 
-// Modificar la definición de columnas para usar el tipo específico
 const columnsDefinition: FAQColumn[] = [
   {
     id: 'order',
@@ -104,6 +93,26 @@ const columnsDefinition: FAQColumn[] = [
     accessorKey: 'status',
     header: 'Estado',
     cell: ({ row }) => <StatusBadge status={row.getValue('status')} />
+  },
+  {
+    id: 'created_at',
+    accessorKey: 'created_at',
+    header: 'Creado',
+    cell: ({ row }) => (
+      <div className="text-center">
+        {formatDate(row.getValue('created_at'))}
+      </div>
+    )
+  },
+  {
+    id: 'updated_at',
+    accessorKey: 'updated_at',
+    header: 'Actualizado',
+    cell: ({ row }) => (
+      <div className="text-center">
+        {formatDate(row.getValue('updated_at'))}
+      </div>
+    )
   },
   {
     id: 'actions',
