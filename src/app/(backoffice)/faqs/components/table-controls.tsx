@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { Table } from '@tanstack/react-table'
 import { ChevronDown, Columns3, PlusCircle } from 'lucide-react'
 
@@ -21,41 +22,62 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 
 interface TableControlsProps {
   table: Table<FAQ>
-  searchValue: string
-  setSearchValue: (value: string) => void
-  selectedStatuses: string[]
-  handleColumnVisibilityChange: (columnId: string, value: boolean) => void
+  defaultSelectedStatuses?: string[]
 }
 
 export function TableControls({
   table,
-  searchValue,
-  setSearchValue,
-  selectedStatuses,
-  handleColumnVisibilityChange
+  defaultSelectedStatuses = ['active', 'inactive', 'draft']
 }: TableControlsProps) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
 
+  const [searchValue, setSearchValue] = useState(
+    searchParams.get('search') || ''
+  )
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>(() => {
+    const statusParam = searchParams.get('status')
+    return statusParam ? statusParam.split(',') : defaultSelectedStatuses
+  })
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      const current = new URLSearchParams(Array.from(searchParams.entries()))
+      if (searchValue) {
+        current.set('search', searchValue)
+      } else {
+        current.delete('search')
+      }
+      current.set('page', '1')
+      router.push(`${pathname}?${current.toString()}`, { scroll: false })
+    }, 300)
+
+    return () => clearTimeout(handler)
+  }, [searchValue, router, pathname, searchParams])
+
+  useEffect(() => {
+    const statusParam = searchParams.get('status')
+    if (!statusParam) {
+      const current = new URLSearchParams(Array.from(searchParams.entries()))
+      current.set('status', defaultSelectedStatuses.join(','))
+      router.push(`${pathname}?${current.toString()}`, { scroll: false })
+    }
+  }, [searchParams, router, pathname, defaultSelectedStatuses])
+
   const handleStatusChange = (status: string, checked?: boolean) => {
     let filterValue: string[] = [...selectedStatuses]
     if (checked === undefined) {
-      // Click handler
-      if (selectedStatuses.includes(status)) {
-        filterValue = filterValue.filter((s) => s !== status)
-      } else {
-        filterValue.push(status)
-      }
+      filterValue = selectedStatuses.includes(status)
+        ? filterValue.filter((s) => s !== status)
+        : [...filterValue, status]
     } else {
-      // Checkbox handler
-      if (checked) {
-        filterValue.push(status)
-      } else {
-        filterValue = filterValue.filter((s) => s !== status)
-      }
+      filterValue = checked
+        ? [...filterValue, status]
+        : filterValue.filter((s) => s !== status)
     }
 
+    setSelectedStatuses(filterValue)
     table
       .getColumn('status')
       ?.setFilterValue(filterValue.length ? filterValue : undefined)
@@ -67,6 +89,21 @@ export function TableControls({
       current.delete('status')
     }
     current.set('page', '1')
+    router.push(`${pathname}?${current.toString()}`, { scroll: false })
+  }
+
+  const handleColumnVisibilityChange = (columnId: string, value: boolean) => {
+    const visibleColumns = table
+      .getAllColumns()
+      .filter((column) => {
+        if (column.id === columnId) return value
+        return column.getIsVisible()
+      })
+      .map((column) => column.id)
+      .filter(Boolean)
+
+    const current = new URLSearchParams(Array.from(searchParams.entries()))
+    current.set('columns', visibleColumns.join(','))
     router.push(`${pathname}?${current.toString()}`, { scroll: false })
   }
 

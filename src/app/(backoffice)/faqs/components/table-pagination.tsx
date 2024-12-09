@@ -1,8 +1,9 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
-import { useSearchParams } from 'next/navigation'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -15,23 +16,55 @@ import {
 interface TablePaginationProps {
   currentPage: number
   pageCount: number
-  startRecord: number
-  endRecord: number
   totalRecords: number
   onPageChange: (page: number) => void
   onPerPageChange: (value: string) => void
 }
 
 export function TablePagination({
-  currentPage,
   pageCount,
-  startRecord,
-  endRecord,
-  totalRecords,
-  onPageChange,
-  onPerPageChange
-}: TablePaginationProps) {
+  totalRecords
+}: Omit<
+  TablePaginationProps,
+  'currentPage' | 'onPageChange' | 'onPerPageChange'
+>) {
+  const router = useRouter()
+  const pathname = usePathname()
   const searchParams = useSearchParams()
+
+  const startRecord =
+    (Number(searchParams.get('page') || 1) - 1) *
+      Number(searchParams.get('perPage') || 10) +
+    1
+  const endRecord = Math.min(
+    Number(searchParams.get('page') || 1) *
+      Number(searchParams.get('perPage') || 10),
+    totalRecords
+  )
+  const [currentPage, setCurrentPage] = useState<number>(
+    Number(searchParams.get('page') || 1)
+  )
+
+  useEffect(() => {
+    const page = Number(searchParams.get('page') || 1)
+    setCurrentPage(page)
+  }, [searchParams])
+
+  const handlePageChange = (page: number) => {
+    const current = new URLSearchParams(Array.from(searchParams.entries()))
+    current.set('page', String(page))
+    if (!current.has('perPage')) {
+      current.set('perPage', '10')
+    }
+    router.push(`${pathname}?${current.toString()}`, { scroll: false })
+  }
+
+  const handlePerPageChange = (value: string) => {
+    const current = new URLSearchParams(Array.from(searchParams.entries()))
+    current.set('perPage', value)
+    current.set('page', '1')
+    router.push(`${pathname}?${current.toString()}`, { scroll: false })
+  }
 
   return (
     <div className="flex-none pt-4">
@@ -39,7 +72,7 @@ export function TablePagination({
         <div className="flex items-center space-x-2">
           <Select
             value={searchParams.get('perPage') || '10'}
-            onValueChange={onPerPageChange}
+            onValueChange={handlePerPageChange}
           >
             <SelectTrigger className="h-8 w-fit text-xs text-muted-foreground">
               <span className="font-semibold">
@@ -73,7 +106,7 @@ export function TablePagination({
                 className="aspect-square p-0"
                 variant="ghost"
                 size="sm"
-                onClick={() => onPageChange(currentPage - 1)}
+                onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage <= 1}
               >
                 <ChevronLeft className="h-4 w-4" />
@@ -82,7 +115,7 @@ export function TablePagination({
                 className="aspect-square p-0"
                 variant="ghost"
                 size="sm"
-                onClick={() => onPageChange(currentPage + 1)}
+                onClick={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage >= pageCount}
               >
                 <ChevronRight className="h-4 w-4" />

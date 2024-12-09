@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import {
   ColumnFiltersState,
   getCoreRowModel,
@@ -20,6 +20,9 @@ import type {
   FAQColumn
 } from '@/app/(backoffice)/faqs/components/columns'
 import { useCreateFAQ } from '@/app/(backoffice)/faqs/components/create-faq-context'
+import { TableContent } from '@/app/(backoffice)/faqs/components/table-content'
+import { TableControls } from '@/app/(backoffice)/faqs/components/table-controls'
+import { TablePagination } from '@/app/(backoffice)/faqs/components/table-pagination'
 import type { FAQ } from '@/app/(backoffice)/faqs/types'
 import { Button } from '@/components/ui/button'
 import {
@@ -31,10 +34,6 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import { createClient } from '@/lib/supabase/client'
-
-import { TableContent } from './table-content'
-import { TableControls } from './table-controls'
-import { TablePagination } from './table-pagination'
 
 interface DataTableProps {
   columns: ColumnsDefinition
@@ -56,6 +55,9 @@ export function DataTable({
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
+
+  const { handleOpenChange } = useCreateFAQ()
+
   const [sorting, setSorting] = useState<SortingState>(() => {
     const sortBy = searchParams.get('sortBy')
     const sortOrder = searchParams.get('sortOrder')
@@ -63,6 +65,7 @@ export function DataTable({
       ? [{ id: sortBy, desc: sortOrder === 'desc' }]
       : [{ id: 'order', desc: false }]
   })
+
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
     () => {
@@ -86,76 +89,6 @@ export function DataTable({
     }
   )
 
-  useEffect(() => {
-    const statusParam = searchParams.get('status')
-    if (statusParam) {
-      setColumnFilters((prev) => [
-        ...prev.filter((filter) => filter.id !== 'status'),
-        { id: 'status', value: statusParam.split(',') }
-      ])
-    } else {
-      // Set default selected statuses if no status parameter exists
-      const defaultStatuses = ['active', 'inactive', 'draft']
-      setColumnFilters((prev) => [
-        ...prev.filter((filter) => filter.id !== 'status'),
-        { id: 'status', value: defaultStatuses }
-      ])
-      const current = new URLSearchParams(Array.from(searchParams.entries()))
-      current.set('status', defaultStatuses.join(','))
-      router.push(`${pathname}?${current.toString()}`, { scroll: false })
-    }
-  }, [searchParams, router, pathname])
-
-  // Initialize currentPage as state
-  const [currentPage, setCurrentPage] = useState<number>(
-    Number(searchParams.get('page') || 1)
-  )
-
-  // Update currentPage when searchParams change
-  useEffect(() => {
-    const page = Number(searchParams.get('page') || 1)
-    setCurrentPage(page)
-  }, [searchParams])
-
-  const handlePageChange = (page: number) => {
-    const current = new URLSearchParams(Array.from(searchParams.entries()))
-    current.set('page', String(page))
-    if (!current.has('perPage')) {
-      current.set('perPage', '10')
-    }
-    router.push(`${pathname}?${current.toString()}`, { scroll: false })
-  }
-
-  const handlePerPageChange = (value: string) => {
-    const current = new URLSearchParams(Array.from(searchParams.entries()))
-    current.set('perPage', value)
-    current.set('page', '1')
-    router.push(`${pathname}?${current.toString()}`, { scroll: false })
-  }
-
-  const handleColumnVisibilityChange = (columnId: string, value: boolean) => {
-    setColumnVisibility((prev) => ({
-      ...prev,
-      [columnId]: value
-    }))
-
-    const visibleColumns = table
-      .getAllColumns()
-      .filter((column) => {
-        if (column.id === columnId) return value
-        return column.getIsVisible()
-      })
-      .map((column) => {
-        const def = column.columnDef as FAQColumn
-        return String(column.id ?? def.accessorKey ?? '')
-      })
-      .filter(Boolean)
-
-    const current = new URLSearchParams(Array.from(searchParams.entries()))
-    current.set('columns', visibleColumns.join(','))
-    router.push(`${pathname}?${current.toString()}`, { scroll: false })
-  }
-
   const handleSortingChange = (updaterOrValue: Updater<SortingState>) => {
     const newSorting =
       typeof updaterOrValue === 'function'
@@ -176,11 +109,9 @@ export function DataTable({
       current.delete('sortOrder')
     }
 
-    current.set('page', '1') // Reset to first page when sorting changes
+    current.set('page', '1')
     router.push(`${pathname}?${current.toString()}`, { scroll: false })
   }
-
-  const { handleOpenChange } = useCreateFAQ() // Use context
 
   const handleEdit = (id: number) => {
     const current = new URLSearchParams(Array.from(searchParams.entries()))
@@ -265,63 +196,22 @@ export function DataTable({
       columnFilters,
       columnVisibility,
       pagination: {
-        pageIndex: currentPage - 1,
+        pageIndex: Number(searchParams.get('page') || 1) - 1,
         pageSize: Number(searchParams.get('perPage') || 10)
       }
     }
   })
 
-  const selectedStatuses =
-    (table.getColumn('status')?.getFilterValue() as string[]) || []
-
-  const [searchValue, setSearchValue] = useState(
-    searchParams.get('search') || ''
-  )
-
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      const current = new URLSearchParams(Array.from(searchParams.entries()))
-      if (searchValue) {
-        current.set('search', searchValue)
-      } else {
-        current.delete('search')
-      }
-      router.push(`${pathname}?${current.toString()}`, { scroll: false })
-    }, 300)
-
-    return () => {
-      clearTimeout(handler)
-    }
-  }, [searchValue, router, pathname, searchParams])
-
-  const startRecord =
-    (currentPage - 1) * Number(searchParams.get('perPage') || 10) + 1
-  const endRecord = Math.min(
-    currentPage * Number(searchParams.get('perPage') || 10),
-    totalRecords
-  )
-
   return (
     <div className="flex h-full flex-col">
       <TableControls
         table={table}
-        searchValue={searchValue}
-        setSearchValue={setSearchValue}
-        selectedStatuses={selectedStatuses}
-        handleColumnVisibilityChange={handleColumnVisibilityChange}
+        defaultSelectedStatuses={['active', 'inactive', 'draft']}
       />
 
       <TableContent table={table} />
 
-      <TablePagination
-        currentPage={currentPage}
-        pageCount={pageCount}
-        startRecord={startRecord}
-        endRecord={endRecord}
-        totalRecords={totalRecords}
-        onPageChange={handlePageChange}
-        onPerPageChange={handlePerPageChange}
-      />
+      <TablePagination pageCount={pageCount} totalRecords={totalRecords} />
     </div>
   )
 }
