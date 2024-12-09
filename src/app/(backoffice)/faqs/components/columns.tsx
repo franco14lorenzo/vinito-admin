@@ -178,8 +178,7 @@ export function StatusBadge({ status }: { status: FAQStatus }) {
   }
 
   const config = statusConfig[status]
-  if (!config) return null // Add this check
-
+  if (!config) return null
   const Icon = config.icon
 
   return (
