@@ -1,6 +1,6 @@
 'use client'
 
-import { ColumnDef } from '@tanstack/react-table'
+import { Column, ColumnDef } from '@tanstack/react-table'
 import {
   AlertCircle,
   ArrowDown,
@@ -10,8 +10,7 @@ import {
   Copy,
   MoreHorizontal,
   Pencil,
-  Trash,
-  XCircle
+  Trash
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -32,44 +31,52 @@ export type FAQColumn = ColumnDef<FAQ, unknown> & {
   accessorKey?: keyof FAQ
 }
 
+interface SortableHeaderProps {
+  column: Column<FAQ>
+  label: string
+}
+
+function SortableHeader({ column, label }: SortableHeaderProps) {
+  const isAsc = column.getIsSorted() === 'asc'
+  const isDesc = column.getIsSorted() === 'desc'
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" className="flex items-center gap-1">
+          {label}
+          {isAsc && <ArrowDown className="h-4 w-4" />}
+          {isDesc && <ArrowUp className="h-4 w-4" />}
+          {!isAsc && !isDesc && <ArrowUp className="h-4 w-4" />}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start">
+        <DropdownMenuItem
+          onClick={() => column.toggleSorting(false)}
+          disabled={isAsc}
+          className="flex items-center gap-2"
+        >
+          <ArrowDown className="h-4 w-4" />
+          Ascendente
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => column.toggleSorting(true)}
+          disabled={isDesc}
+          className="flex items-center gap-2"
+        >
+          <ArrowUp className="h-4 w-4" />
+          Descendente
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+
 const columnsDefinition: FAQColumn[] = [
   {
     id: 'order',
     accessorKey: 'order',
-    header: ({ column }) => {
-      const isAsc = column.getIsSorted() === 'asc'
-      const isDesc = column.getIsSorted() === 'desc'
-
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="flex items-center gap-1">
-              Orden{isAsc && <ArrowDown className="h-4 w-4" />}
-              {isDesc && <ArrowUp className="h-4 w-4" />}
-              {!isAsc && !isDesc && <ArrowUp className="h-4 w-4" />}
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start">
-            <DropdownMenuItem
-              onClick={() => column.toggleSorting(false)}
-              disabled={isAsc}
-              className="flex items-center gap-2"
-            >
-              <ArrowDown className="h-4 w-4" />
-              Ascendente
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => column.toggleSorting(true)}
-              disabled={isDesc}
-              className="flex items-center gap-2"
-            >
-              <ArrowUp className="h-4 w-4" />
-              Descendente
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )
-    },
+    header: ({ column }) => <SortableHeader column={column} label="Orden" />,
     cell: ({ row }) => (
       <div className="text-center">{row.getValue('order')}</div>
     )
@@ -97,7 +104,8 @@ const columnsDefinition: FAQColumn[] = [
   {
     id: 'created_at',
     accessorKey: 'created_at',
-    header: 'Creado',
+    header: ({ column }) => <SortableHeader column={column} label="Creado" />,
+    enableSorting: true,
     cell: ({ row }) => (
       <div className="text-center">
         {formatDate(row.getValue('created_at'))}
@@ -107,7 +115,10 @@ const columnsDefinition: FAQColumn[] = [
   {
     id: 'updated_at',
     accessorKey: 'updated_at',
-    header: 'Actualizado',
+    header: ({ column }) => (
+      <SortableHeader column={column} label="Actualizado" />
+    ),
+    enableSorting: true,
     cell: ({ row }) => (
       <div className="text-center">
         {formatDate(row.getValue('updated_at'))}
@@ -169,11 +180,6 @@ export function StatusBadge({ status }: { status: FAQStatus }) {
       label: 'Inactivo',
       icon: AlertCircle,
       variant: 'warning'
-    },
-    deleted: {
-      label: 'Eliminado',
-      icon: XCircle,
-      variant: 'destructive'
     }
   }
 
