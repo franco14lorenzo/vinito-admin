@@ -15,6 +15,7 @@ import { toast } from 'sonner'
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 
+import { deleteFAQ } from '@/app/(backoffice)/faqs/actions'
 import type {
   ColumnsDefinition,
   FAQColumn
@@ -33,7 +34,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
-import { createClient } from '@/lib/supabase/client'
+
+import { STATUS_FILTERS } from '../constants'
 
 interface DataTableProps {
   columns: ColumnsDefinition
@@ -42,8 +44,6 @@ interface DataTableProps {
   totalRecords: number
   adminId: string
 }
-
-const supabase = createClient()
 
 export function DataTable({
   columns,
@@ -121,23 +121,14 @@ export function DataTable({
   }
 
   const handleDelete = async (id: number) => {
-    const { error } = await supabase
-      .from('faqs')
-      .update({
-        status: 'deleted',
-        updated_by: Number(adminId),
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', id)
-
-    if (error) {
-      console.error('Error deleting FAQ:', error)
+    try {
+      await deleteFAQ(id, Number(adminId))
+      toast.success('FAQ eliminada correctamente')
+      router.refresh()
+    } catch (error) {
+      console.error('Error:', error)
       toast.error('Error eliminando la FAQ')
-      return
     }
-
-    toast.success('FAQ eliminada correctamente')
-    router.refresh()
   }
 
   const table = useReactTable({
@@ -204,10 +195,7 @@ export function DataTable({
 
   return (
     <div className="flex h-full flex-col">
-      <TableControls
-        table={table}
-        defaultSelectedStatuses={['active', 'inactive', 'draft']}
-      />
+      <TableControls table={table} defaultSelectedStatuses={STATUS_FILTERS} />
 
       <TableContent table={table} />
 

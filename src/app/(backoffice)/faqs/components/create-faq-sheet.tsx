@@ -36,7 +36,8 @@ import {
 } from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Textarea } from '@/components/ui/textarea'
-import { createClient } from '@/lib/supabase/client'
+
+import { createFAQ, getFAQById, updateFAQ } from '../actions'
 
 interface CreateFAQSheetProps {
   editId?: string
@@ -46,17 +47,16 @@ interface CreateFAQSheetProps {
 const faqFormSchema = z.object({
   question: z.string().min(1, 'La pregunta es requerida'),
   answer: z.string().min(1, 'La respuesta es requerida'),
-  order: z.coerce.number().optional(), // Allow order to be optional
+  order: z.coerce.number().optional(),
   status: z.enum(['draft', 'active', 'inactive', 'deleted'])
 })
 
 type FAQFormValues = z.infer<typeof faqFormSchema>
 
-const supabase = createClient()
-
 export function CreateFAQSheet({ editId, adminId }: CreateFAQSheetProps) {
   const { isCreateOpen, handleOpenChange } = useCreateFAQ()
   const [isLoading, setIsLoading] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const form = useForm<FAQFormValues>({
     resolver: zodResolver(faqFormSchema),
@@ -73,21 +73,12 @@ export function CreateFAQSheet({ editId, adminId }: CreateFAQSheetProps) {
       setIsLoading(true)
       const fetchFAQ = async () => {
         try {
-          const { data, error } = await supabase
-            .from('faqs')
-            .select('*')
-            .eq('id', editId)
-            .single()
-
-          if (error) {
-            console.error('Error fetching FAQ:', error)
-            return
-          }
-
+          const { data } = await getFAQById(editId)
           const { status, ...rest } = data
           form.reset({ status, ...rest })
         } catch (error) {
           console.error('Error:', error)
+          toast.error('Error al cargar la FAQ')
         } finally {
           setIsLoading(false)
         }
@@ -104,42 +95,17 @@ export function CreateFAQSheet({ editId, adminId }: CreateFAQSheetProps) {
   }, [editId, form])
 
   const onSubmit = async (data: FAQFormValues) => {
+    if (!adminId) {
+      toast.error('No se pudo identificar el usuario')
+      return
+    }
+
+    setIsSubmitting(true)
     try {
       if (editId) {
-        const { error } = await supabase
-          .from('faqs')
-          .update({
-            question: data.question,
-            answer: data.answer,
-            order: data.order ?? undefined, // Use undefined if order is not provided
-            status: data.status,
-            updated_at: new Date().toISOString(),
-            updated_by: Number(adminId)
-          })
-          .eq('id', editId)
-          .select()
-
-        if (error) {
-          console.error('Error updating FAQ:', error)
-          toast.error('No se pudo actualizar la FAQ')
-          return
-        }
+        await updateFAQ(editId, data, Number(adminId))
       } else {
-        const { error } = await supabase
-          .from('faqs')
-          .insert({
-            ...data,
-            order: data.order ?? undefined, // Use undefined if order is not provided
-            created_at: new Date().toISOString(),
-            created_by: Number(adminId) // Add adminId to create operation
-          })
-          .select()
-
-        if (error) {
-          console.error('Error creating FAQ:', error)
-          toast.error('No se pudo crear la FAQ')
-          return
-        }
+        await createFAQ(data, Number(adminId))
       }
 
       toast.success(`FAQ ${editId ? 'actualizada' : 'creada'} correctamente`)
@@ -147,7 +113,9 @@ export function CreateFAQSheet({ editId, adminId }: CreateFAQSheetProps) {
       form.reset()
     } catch (error) {
       console.error('Error:', error)
-      toast.error('Ocurrió un error inesperado')
+      toast.error(`No se pudo ${editId ? 'actualizar' : 'crear'} la FAQ`)
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -228,7 +196,7 @@ export function CreateFAQSheet({ editId, adminId }: CreateFAQSheetProps) {
                 <Input
                   type="number"
                   {...field}
-                  value={field.value ?? ''} // Set value to empty string if undefined
+                  value={field.value ?? ''}
                   onChange={(e) => field.onChange(e.target.value)}
                   placeholder="Por defecto"
                   disabled={isLoading}
@@ -299,12 +267,18 @@ export function CreateFAQSheet({ editId, adminId }: CreateFAQSheetProps) {
                 <Button
                   variant="outline"
                   onClick={() => handleOpenChange(false)}
-                  disabled={isLoading}
+                  disabled={isLoading || isSubmitting}
                 >
                   Cancelar
                 </Button>
-                <Button type="submit" disabled={isLoading}>
-                  {isLoading ? 'Cargando...' : editId ? 'Actualizar' : 'Crear'}{' '}
+                <Button type="submit" disabled={isLoading || isSubmitting}>
+                  {isSubmitting
+                    ? 'Guardando...'
+                    : isLoading
+                    ? 'Cargando...'
+                    : editId
+                    ? 'Actualizar'
+                    : 'Crear'}{' '}
                   FAQ
                 </Button>
               </SheetFooter>
