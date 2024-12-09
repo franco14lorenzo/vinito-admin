@@ -118,7 +118,7 @@ const navMain = [
 
 export function NavMain() {
   const [searchTerm, setSearchTerm] = useState('')
-  const { open } = useSidebar()
+  const { open, setOpen, toggleSidebar } = useSidebar()
 
   const filteredNav = navMain
     .map((group) => ({
@@ -151,6 +151,10 @@ export function NavMain() {
                 <SidebarMenuItem key={subItem.title}>
                   <SidebarMenuButton asChild>
                     <Link
+                      onClick={() => {
+                        setOpen(false)
+                        toggleSidebar()
+                      }}
                       href={subItem.url}
                       key={subItem.title}
                       className={`block w-full
