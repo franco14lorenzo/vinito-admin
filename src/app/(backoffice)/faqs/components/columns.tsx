@@ -1,98 +1,23 @@
 'use client'
 
-import { Column, ColumnDef } from '@tanstack/react-table'
-import {
-  AlertCircle,
-  ArrowDown,
-  ArrowUp,
-  CheckCircle2,
-  Clock,
-  Copy,
-  MoreHorizontal,
-  Pencil,
-  Trash
-} from 'lucide-react'
-import { toast } from 'sonner'
+import { ColumnDef } from '@tanstack/react-table'
 
-import type { FAQ, FAQStatus } from '@/app/(backoffice)/faqs/types'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu'
+import type { FAQ } from '@/app/(backoffice)/faqs/types'
+import SortableHeader from '@/components/blocks/table/sorteable-header-table'
+import { StatusBadge } from '@/components/status-badge'
 import { formatDate } from '@/lib/utils'
 
 export type FAQColumn = ColumnDef<FAQ, unknown> & {
   accessorKey?: keyof FAQ
 }
 
-interface SortableHeaderProps {
-  column: Column<FAQ>
-  label: string
-}
-
-function SortableHeader({ column, label }: SortableHeaderProps) {
-  const isAsc = column.getIsSorted() === 'asc'
-  const isDesc = column.getIsSorted() === 'desc'
-  const isSorted = isAsc || isDesc
-
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant={'ghost'} className="flex items-center gap-1">
-          {label}
-          <div className="ml-1 flex items-center">
-            {isAsc && <ArrowUp className="h-4 w-4 text-muted-foreground/30" />}
-            {isDesc && (
-              <ArrowDown className="h-4 w-4 text-muted-foreground/30" />
-            )}
-            {!isSorted && <ArrowUp className="h-4 w-4" />}
-          </div>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start">
-        <DropdownMenuItem
-          onClick={() => column.toggleSorting(false)}
-          disabled={isAsc}
-          className="flex items-center gap-2"
-        >
-          <ArrowUp className="h-4 w-4" />
-          Ascendente
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={() => column.toggleSorting(true)}
-          disabled={isDesc}
-          className="flex items-center gap-2"
-        >
-          <ArrowDown className="h-4 w-4" />
-          Descendente
-        </DropdownMenuItem>
-        {isSorted && (
-          <>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() => column.clearSorting()}
-              className="flex items-center gap-2"
-            >
-              Quitar orden
-            </DropdownMenuItem>
-          </>
-        )}
-      </DropdownMenuContent>
-    </DropdownMenu>
-  )
-}
-
 const columnsDefinition: FAQColumn[] = [
   {
     id: 'order',
     accessorKey: 'order',
-    header: ({ column }) => <SortableHeader column={column} label="Orden" />,
+    header: ({ column }) => (
+      <SortableHeader<FAQ> column={column} label="Orden" />
+    ),
     cell: ({ row }) => (
       <div className="text-center">{row.getValue('order')}</div>
     )
@@ -120,101 +45,30 @@ const columnsDefinition: FAQColumn[] = [
   {
     id: 'created_at',
     accessorKey: 'created_at',
-    header: ({ column }) => <SortableHeader column={column} label="Creado" />,
+    header: ({ column }) => (
+      <SortableHeader<FAQ> column={column} label="Creado" />
+    ),
     enableSorting: true,
     cell: ({ row }) => (
-      <div className="text-center">
-        {formatDate(row.getValue('created_at'))}
-      </div>
+      <div className="px-4">{formatDate(row.getValue('created_at'))}</div>
     )
   },
   {
     id: 'updated_at',
     accessorKey: 'updated_at',
     header: ({ column }) => (
-      <SortableHeader column={column} label="Actualizado" />
+      <SortableHeader<FAQ> column={column} label="Actualizado" />
     ),
     enableSorting: true,
     cell: ({ row }) => (
-      <div className="text-center">
-        {formatDate(row.getValue('updated_at'))}
-      </div>
+      <div className="px-4">{formatDate(row.getValue('updated_at'))}</div>
     )
   },
   {
     id: 'actions',
-    enableHiding: false,
-    cell: ({ row }) => {
-      const faq = row.original
-
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-            <DropdownMenuItem
-              onClick={() => {
-                navigator.clipboard.writeText(String(faq.id))
-                toast.success('ID copiado al portapapeles')
-              }}
-            >
-              <Copy className="h-4 w-4" />
-              Copiar ID
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <Pencil className="h-4 w-4" /> Editar
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Trash className="h-4 w-4" /> Eliminar
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )
-    }
+    enableHiding: false
   }
 ]
-
-export function StatusBadge({ status }: { status: FAQStatus }) {
-  const statusConfig = {
-    active: {
-      label: 'Activo',
-      icon: CheckCircle2,
-      variant: 'success'
-    },
-    draft: {
-      label: 'Borrador',
-      icon: Clock,
-      variant: 'secondary'
-    },
-    inactive: {
-      label: 'Inactivo',
-      icon: AlertCircle,
-      variant: 'warning'
-    }
-  }
-
-  const config = statusConfig[status]
-  if (!config) return null
-  const Icon = config.icon
-
-  return (
-    <Badge
-      variant={
-        config.variant as 'success' | 'warning' | 'secondary' | 'destructive'
-      }
-      className="gap-1"
-    >
-      <Icon className="h-4 w-4" />
-      {config.label}
-    </Badge>
-  )
-}
 
 export const columns = columnsDefinition
 

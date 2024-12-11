@@ -27,7 +27,7 @@ type FAQData = {
   question: string
   answer: string
   order?: number
-  status: 'draft' | 'active' | 'inactive' | 'deleted'
+  status: 'draft' | 'active' | 'inactive'
 }
 
 export async function createFAQ(data: FAQData, adminId: number) {
@@ -95,3 +95,5 @@ export async function deleteFAQ(id: number, adminId: number) {
     throw error
   }
 }
+
+// TODO: Implemente revalidate after create/update/delete to update cache of ecommerce

@@ -6,8 +6,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
 import * as z from 'zod'
 
-import { StatusBadge } from '@/app/(backoffice)/faqs/components/columns'
 import { useCreateFAQ } from '@/app/(backoffice)/faqs/components/create-faq-context'
+import { StatusBadge } from '@/components/status-badge'
 import { Button } from '@/components/ui/button'
 import {
   Form,
@@ -48,7 +48,7 @@ const faqFormSchema = z.object({
   question: z.string().min(1, 'La pregunta es requerida'),
   answer: z.string().min(1, 'La respuesta es requerida'),
   order: z.coerce.number().optional(),
-  status: z.enum(['draft', 'active', 'inactive', 'deleted'])
+  status: z.enum(['draft', 'active', 'inactive'])
 })
 
 type FAQFormValues = z.infer<typeof faqFormSchema>
@@ -75,6 +75,11 @@ export function CreateFAQSheet({ editId, adminId }: CreateFAQSheetProps) {
         try {
           const { data } = await getFAQById(editId)
           const { status, ...rest } = data
+          if (status === 'deleted') {
+            toast.error('La FAQ ha sido eliminada')
+            handleOpenChange(false)
+            return
+          }
           form.reset({ status, ...rest })
         } catch (error) {
           console.error('Error:', error)
@@ -92,7 +97,7 @@ export function CreateFAQSheet({ editId, adminId }: CreateFAQSheetProps) {
         status: 'draft'
       })
     }
-  }, [editId, form])
+  }, [editId, form, handleOpenChange])
 
   const onSubmit = async (data: FAQFormValues) => {
     if (!adminId) {

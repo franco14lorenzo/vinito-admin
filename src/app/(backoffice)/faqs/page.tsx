@@ -145,7 +145,6 @@ async function getFAQs(params: FAQParams = {}, visibleColumns: string[]) {
   )
 
   const queryColumns = [...new Set(['id', ...filteredColumns])].join(',')
-  console.log('queryColumns', queryColumns)
 
   let query = supabase.from('faqs').select(queryColumns)
 

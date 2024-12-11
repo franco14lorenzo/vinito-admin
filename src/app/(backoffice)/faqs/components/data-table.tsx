@@ -10,7 +10,6 @@ import {
   useReactTable,
   VisibilityState
 } from '@tanstack/react-table'
-import { Copy, MoreHorizontal, Pencil, Trash } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
@@ -21,21 +20,12 @@ import type {
   FAQColumn
 } from '@/app/(backoffice)/faqs/components/columns'
 import { useCreateFAQ } from '@/app/(backoffice)/faqs/components/create-faq-context'
-import { TableContent } from '@/app/(backoffice)/faqs/components/table-content'
-import { TableControls } from '@/app/(backoffice)/faqs/components/table-controls'
-import { TablePagination } from '@/app/(backoffice)/faqs/components/table-pagination'
+import { STATUS_FILTERS } from '@/app/(backoffice)/faqs/constants'
 import type { FAQ } from '@/app/(backoffice)/faqs/types'
-import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu'
-
-import { STATUS_FILTERS } from '../constants'
+import { TableActionsDropdown } from '@/components/blocks/table/table-actions-dropdown'
+import { TableContent } from '@/components/blocks/table/table-content'
+import { TableControls } from '@/components/blocks/table/table-controls'
+import { TablePagination } from '@/components/blocks/table/table-pagination'
 
 interface DataTableProps {
   columns: ColumnsDefinition
@@ -113,16 +103,16 @@ export function DataTable({
     router.push(`${pathname}?${current.toString()}`, { scroll: false })
   }
 
-  const handleEdit = (id: number) => {
+  const handleEdit = (id: string | number) => {
     const current = new URLSearchParams(Array.from(searchParams.entries()))
     current.set('edit', String(id))
     router.push(`${pathname}?${current.toString()}`, { scroll: false })
-    handleOpenChange(true, String(id)) // Pass editId to handleOpenChange
+    handleOpenChange(true, String(id))
   }
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string | number) => {
     try {
-      await deleteFAQ(id, Number(adminId))
+      await deleteFAQ(Number(id), Number(adminId))
       toast.success('FAQ eliminada correctamente')
       router.refresh()
     } catch (error) {
@@ -140,33 +130,11 @@ export function DataTable({
           cell: ({ row }) => {
             const faq = row.original as FAQ
             return (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="h-8 w-8 p-0">
-                    <span className="sr-only">Open menu</span>
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                  <DropdownMenuItem
-                    onClick={() => {
-                      navigator.clipboard.writeText(String(faq.id))
-                      toast.success('ID copiado al portapapeles')
-                    }}
-                  >
-                    <Copy className="h-4 w-4" />
-                    Copiar ID
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => handleEdit(faq.id)}>
-                    <Pencil className="h-4 w-4" /> Editar
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleDelete(faq.id)}>
-                    <Trash className="h-4 w-4" /> Eliminar
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <TableActionsDropdown
+                id={faq.id}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+              />
             )
           }
         }
@@ -193,9 +161,18 @@ export function DataTable({
     }
   })
 
+  const filters = [
+    {
+      id: 'status',
+      label: 'Estados',
+      options: STATUS_FILTERS,
+      defaultSelected: ['active', 'inactive', 'draft']
+    }
+  ]
+
   return (
     <div className="flex h-full flex-col">
-      <TableControls table={table} defaultSelectedStatuses={STATUS_FILTERS} />
+      <TableControls<FAQ> table={table} filters={filters} />
 
       <TableContent table={table} />
 

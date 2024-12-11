@@ -12,4 +12,8 @@ export const DEFAULT_ORDER = {
   ascending: true
 }
 
-export const STATUS_FILTERS = ['active', 'inactive', 'draft']
+export const STATUS_FILTERS = [
+  { label: 'Activo', value: 'active' },
+  { label: 'Inactivo', value: 'inactive' },
+  { label: 'Borrador', value: 'draft' }
+]
