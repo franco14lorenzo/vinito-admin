@@ -1,8 +1,7 @@
 'use client'
 
-import { flexRender, Table as TableInstance } from '@tanstack/react-table'
+import { flexRender, Table as TableType } from '@tanstack/react-table'
 
-import type { FAQ } from '@/app/(backoffice)/faqs/types'
 import {
   Table,
   TableBody,
@@ -12,29 +11,21 @@ import {
   TableRow
 } from '@/components/ui/table'
 
-interface TableContentProps {
-  table: TableInstance<FAQ>
+interface TableContentProps<TData> {
+  table: TableType<TData>
 }
 
-export function TableContent({ table }: TableContentProps) {
+export function TableContent<TData>({ table }: TableContentProps<TData>) {
   return (
     <div className="relative flex-1 overflow-hidden">
-      <div className="relative h-full rounded-md border">
-        <div className="h-full overflow-auto">
+      <div className="relative h-full overflow-hidden rounded-md">
+        <div className="h-full overflow-auto rounded-md">
           <Table>
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map((header) => (
-                    <TableHead
-                      key={header.id}
-                      style={{
-                        position: 'sticky',
-                        top: 0,
-                        background: 'white',
-                        zIndex: 20
-                      }}
-                    >
+                    <TableHead className="bg-muted/50" key={header.id}>
                       {header.isPlaceholder
                         ? null
                         : flexRender(
