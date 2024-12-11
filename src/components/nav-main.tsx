@@ -137,7 +137,7 @@ export function NavMain() {
         <input
           type="text"
           placeholder="Buscar..."
-          className="bg-primary-white m-2 rounded-md border border-input p-2 text-sm"
+          className="bg-primary-white mx-4 my-2 rounded-md border border-input p-2 text-sm"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
@@ -152,20 +152,22 @@ export function NavMain() {
                   <SidebarMenuButton asChild>
                     <Link
                       onClick={() => {
+                        open && toggleSidebar()
                         setOpen(false)
-                        toggleSidebar()
                       }}
                       href={subItem.url}
                       key={subItem.title}
-                      className={`block w-full
+                      className={`block w-full hover:cursor-pointer
                         ${
                           pathname === subItem.url
-                            ? 'pointer-events-none border bg-muted'
+                            ? 'pointer-events-none bg-muted'
                             : ''
                         } rounded-md p-2 transition-colors duration-200
                         `}
                     >
-                      {subItem.icon && <subItem.icon />}
+                      {subItem.icon && (
+                        <subItem.icon className="pointer-events-none" />
+                      )}
                       <span>{subItem.title}</span>
                     </Link>
                   </SidebarMenuButton>
