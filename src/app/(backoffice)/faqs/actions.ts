@@ -45,6 +45,11 @@ export async function createFAQ(data: FAQData, adminId: number) {
       .select()
 
     if (error) throw new Error(error.message)
+    const revalidateUrl = new URL(
+      'https://www.vinito.store/api/revalidate-path'
+    )
+    revalidateUrl.searchParams.append('path', '/faq')
+    await fetch(revalidateUrl.toString())
     return { success: true }
   } catch (error) {
     console.error('Error creating FAQ:', error)
@@ -68,6 +73,11 @@ export async function updateFAQ(id: string, data: FAQData, adminId: number) {
       .select()
 
     if (error) throw new Error(error.message)
+    const revalidateUrl = new URL(
+      'https://www.vinito.store/api/revalidate-path'
+    )
+    revalidateUrl.searchParams.append('path', '/faq')
+    await fetch(revalidateUrl.toString())
     return { success: true }
   } catch (error) {
     console.error('Error updating FAQ:', error)
@@ -89,6 +99,11 @@ export async function deleteFAQ(id: number, adminId: number) {
       .eq('id', id)
 
     if (error) throw new Error(error.message)
+    const revalidateUrl = new URL(
+      'https://www.vinito.store/api/revalidate-path'
+    )
+    revalidateUrl.searchParams.append('path', '/faq')
+    await fetch(revalidateUrl.toString())
     return { success: true }
   } catch (error) {
     console.error('Error deleting FAQ:', error)
