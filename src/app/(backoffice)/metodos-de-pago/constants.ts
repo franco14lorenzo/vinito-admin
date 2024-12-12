@@ -1,21 +1,19 @@
 export const DEFAULT_COLUMNS = [
-  'order',
-  'question',
-  'answer',
+  'name',
+  'type',
   'status',
-  'created_at',
+  'description',
   'updated_at'
 ]
 
 export const DEFAULT_ORDER = {
-  column: 'order',
-  ascending: true
+  column: 'updated_at',
+  ascending: false
 }
 
 export const STATUS_FILTERS = [
   { label: 'Activo', value: 'active' },
-  { label: 'Inactivo', value: 'inactive' },
-  { label: 'Borrador', value: 'draft' }
+  { label: 'Inactivo', value: 'inactive' }
 ]
 
 export const FILTERS = [
@@ -23,6 +21,6 @@ export const FILTERS = [
     id: 'status',
     label: 'Estados',
     options: STATUS_FILTERS,
-    defaultSelected: ['active', 'inactive', 'draft']
+    defaultSelected: ['active', 'inactive']
   }
 ]

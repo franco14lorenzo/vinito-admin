@@ -10,50 +10,48 @@ import {
   useReactTable,
   VisibilityState
 } from '@tanstack/react-table'
-import { toast } from 'sonner'
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 
-import { deleteFAQ } from '@/app/(backoffice)/faqs/actions'
-import type {
-  ColumnsDefinition,
-  FAQColumn
-} from '@/app/(backoffice)/faqs/components/columns'
-import { useCreateFAQ } from '@/app/(backoffice)/faqs/components/create-faq-context'
-import { FILTERS } from '@/app/(backoffice)/faqs/constants'
-import type { FAQ } from '@/app/(backoffice)/faqs/types'
+import {
+  DEFAULT_ORDER,
+  FILTERS
+} from '@/app/(backoffice)/metodos-de-pago/constants'
+import type { PaymentMethod } from '@/app/(backoffice)/metodos-de-pago/types'
 import { TableActionsDropdown } from '@/components/blocks/table/table-actions-dropdown'
 import { TableContent } from '@/components/blocks/table/table-content'
 import { TableControls } from '@/components/blocks/table/table-controls'
 import { TablePagination } from '@/components/blocks/table/table-pagination'
 
+/* import { deletePaymentMethod } from '../actions' */
+import type { ColumnsDefinition, PaymentMethodColumn } from './columns'
+import { useEditPaymentMethod } from './edit-payment-method-context'
+
 interface DataTableProps {
   columns: ColumnsDefinition
-  data: FAQ[]
+  data: PaymentMethod[]
   pageCount: number
   totalRecords: number
-  adminId: string
 }
 
 export function DataTable({
   columns,
   data,
   pageCount,
-  totalRecords,
-  adminId
+  totalRecords
 }: DataTableProps) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
 
-  const { handleOpenChange } = useCreateFAQ()
+  const { handleOpenChange } = useEditPaymentMethod()
 
   const [sorting, setSorting] = useState<SortingState>(() => {
     const sortBy = searchParams.get('sortBy')
     const sortOrder = searchParams.get('sortOrder')
     return sortBy
       ? [{ id: sortBy, desc: sortOrder === 'desc' }]
-      : [{ id: 'order', desc: false }]
+      : [{ id: DEFAULT_ORDER.column, desc: !DEFAULT_ORDER.ascending }]
   })
 
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
@@ -63,17 +61,11 @@ export function DataTable({
       const columnsArray = columnsFromParams.split(',').filter(Boolean)
       const visibilityState: VisibilityState = {}
 
-      if (columnsArray.length > 0) {
-        columns.forEach((column: FAQColumn) => {
-          const columnId = column.id ?? column.accessorKey ?? ''
-          visibilityState[columnId] = columnsArray.includes(columnId)
-        })
-      } else {
-        columns.forEach((column: FAQColumn) => {
-          const columnId = column.id ?? column.accessorKey ?? ''
-          visibilityState[columnId] = true
-        })
-      }
+      columns.forEach((column: PaymentMethodColumn) => {
+        const columnId = column.id ?? column.accessorKey ?? ''
+        visibilityState[columnId] =
+          columnsArray.length === 0 || columnsArray.includes(columnId)
+      })
 
       return visibilityState
     }
@@ -110,30 +102,30 @@ export function DataTable({
     handleOpenChange(true, String(id))
   }
 
-  const handleDelete = async (id: string | number) => {
+  /*  const handleDelete = async (id: string | number) => {
     try {
-      await deleteFAQ(Number(id), Number(adminId))
-      toast.success('FAQ eliminada correctamente')
+      await deletePaymentMethod(Number(id))
+      toast.success('Método de pago eliminado correctamente')
       router.refresh()
     } catch (error) {
       console.error('Error:', error)
-      toast.error('Error eliminando la FAQ')
+      toast.error('Error eliminando el método de pago')
     }
-  }
+  } */
 
   const table = useReactTable({
     data,
-    columns: columns.map((column: FAQColumn) => {
+    columns: columns.map((column: PaymentMethodColumn) => {
       if (column.id === 'actions') {
         return {
           ...column,
           cell: ({ row }) => {
-            const faq = row.original as FAQ
+            const paymentMethod = row.original as PaymentMethod
             return (
               <TableActionsDropdown
-                id={faq.id}
+                id={paymentMethod.id}
                 onEdit={handleEdit}
-                onDelete={handleDelete}
+                /*    onDelete={handleDelete} */
               />
             )
           }
@@ -163,10 +155,8 @@ export function DataTable({
 
   return (
     <div className="flex h-full flex-col">
-      <TableControls<FAQ> table={table} filters={FILTERS} />
-
+      <TableControls table={table} filters={FILTERS} />
       <TableContent table={table} />
-
       <TablePagination pageCount={pageCount} totalRecords={totalRecords} />
     </div>
   )
