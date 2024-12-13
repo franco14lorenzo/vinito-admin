@@ -7,7 +7,8 @@ import { CreateFAQSheet } from '@/app/(backoffice)/faqs/components/create-faq-sh
 import { DataTable } from '@/app/(backoffice)/faqs/components/data-table'
 import {
   DEFAULT_COLUMNS,
-  DEFAULT_ORDER
+  DEFAULT_ORDER,
+  FILTERS
 } from '@/app/(backoffice)/faqs/constants'
 import { FAQ, FAQParams, FAQStatus } from '@/app/(backoffice)/faqs/types'
 import { auth } from '@/lib/auth'
@@ -86,7 +87,7 @@ async function getFAQs(params: FAQParams = {}, visibleColumns: string[]) {
     page = 1,
     perPage = 10,
     orderBy = DEFAULT_ORDER,
-    filters = {}
+    filters = { status: FILTERS[0].defaultSelected, order: undefined }
   } = params
 
   const supabase = await createClient()
