@@ -7,8 +7,6 @@ import {
   useReactTable
 } from '@tanstack/react-table'
 
-import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-
 import {
   ColumnsDefinition,
   SettingColumn
@@ -34,15 +32,9 @@ export function DataTable({
   pageCount,
   totalRecords
 }: DataTableProps) {
-  const router = useRouter()
-  const pathname = usePathname()
-  const searchParams = useSearchParams()
   const { handleOpenChange } = useCreateSetting()
 
   const handleEdit = (id: string | number) => {
-    const current = new URLSearchParams(Array.from(searchParams.entries()))
-    current.set('edit', String(id))
-    router.push(`${pathname}?${current.toString()}`, { scroll: false })
     handleOpenChange(true, String(id))
   }
 
@@ -54,7 +46,12 @@ export function DataTable({
           ...column,
           cell: ({ row }) => {
             const setting = row.original as Setting
-            return <TableActionsDropdown id={setting.id} onEdit={handleEdit} />
+            return (
+              <TableActionsDropdown
+                id={setting.id}
+                onEdit={() => handleEdit(setting.id)}
+              />
+            )
           }
         }
       }

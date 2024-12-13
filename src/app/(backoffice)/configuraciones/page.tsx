@@ -17,7 +17,6 @@ export default async function SettingsPage({
 }) {
   const awaitedSearchParams = await searchParams
   const params: SettingParams = {
-    edit: awaitedSearchParams.edit as string,
     page: Number(awaitedSearchParams.page) || 1,
     perPage: Number(awaitedSearchParams.perPage) || 10,
     visibleColumns: awaitedSearchParams.columns
@@ -25,8 +24,6 @@ export default async function SettingsPage({
       : DEFAULT_COLUMNS,
     search: (awaitedSearchParams.search as string) || ''
   }
-
-  const editId = params.edit ? parseInt(params.edit, 10) : undefined
 
   const { data, error, count } = await getSettings(
     params,
@@ -42,7 +39,7 @@ export default async function SettingsPage({
   const session = await auth()
 
   return (
-    <EditSettingProvider isEditOpenParams={editId ? String(editId) : ''}>
+    <EditSettingProvider>
       <div className="flex h-[calc(100dvh-80px)] w-full flex-col gap-4 p-4">
         <div className="flex-none">
           <div className="flex items-center justify-between">
@@ -61,10 +58,7 @@ export default async function SettingsPage({
             />
           </div>
         </div>
-        <EditSettingSheet
-          adminId={session?.user?.id}
-          editId={editId ? String(editId) : undefined}
-        />
+        <EditSettingSheet adminId={session?.user?.id} />
       </div>
     </EditSettingProvider>
   )

@@ -6,6 +6,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
 import * as z from 'zod'
 
+import { useRouter } from 'next/navigation'
+
 import { Button } from '@/components/ui/button'
 import {
   Form,
@@ -37,13 +39,8 @@ const formSchema = z.object({
   description: z.string().optional()
 })
 
-export function EditSettingSheet({
-  adminId,
-  editId
-}: {
-  adminId?: string | null
-  editId?: string
-}) {
+export function EditSettingSheet({ adminId }: { adminId?: string | null }) {
+  const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { isEditOpen, handleOpenChange } = useCreateSetting()
@@ -57,11 +54,11 @@ export function EditSettingSheet({
   })
 
   useEffect(() => {
-    if (editId) {
+    if (isEditOpen) {
       setIsLoading(true)
-      async function loadSetting(id: string) {
+      async function loadSetting() {
         try {
-          const { data } = await getSettingById(id)
+          const { data } = await getSettingById(isEditOpen)
 
           form.reset({
             ...data,
@@ -75,9 +72,9 @@ export function EditSettingSheet({
         }
       }
 
-      loadSetting(editId)
+      loadSetting()
     }
-  }, [editId, form])
+  }, [isEditOpen, form])
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!adminId) {
@@ -87,7 +84,7 @@ export function EditSettingSheet({
 
     setIsSubmitting(true)
     try {
-      if (!editId) {
+      if (!isEditOpen) {
         throw new Error('No se pudo obtener el ID del setting')
       }
       const payload = {
@@ -96,9 +93,10 @@ export function EditSettingSheet({
         updated_by: Number(adminId)
       }
 
-      await updateSetting(editId, payload)
+      await updateSetting(isEditOpen, payload)
 
       toast.success('Setting actualizado correctamente')
+      router.refresh()
     } catch (error) {
       toast.error('Ocurrió un error al actualizar el setting')
     } finally {
