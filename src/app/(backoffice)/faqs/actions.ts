@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { revalidateStoreTag } from '@/lib/utils'
 
 export async function getFAQById(id: string) {
   const supabase = await createClient()
@@ -73,11 +74,9 @@ export async function updateFAQ(id: string, data: FAQData, adminId: number) {
       .select()
 
     if (error) throw new Error(error.message)
-    const revalidateUrl = new URL(
-      'https://www.vinito.store/api/revalidate-path'
-    )
-    revalidateUrl.searchParams.append('path', '/faq')
-    await fetch(revalidateUrl.toString())
+
+    revalidateStoreTag('faqs')
+
     return { success: true }
   } catch (error) {
     console.error('Error updating FAQ:', error)
@@ -99,16 +98,12 @@ export async function deleteFAQ(id: number, adminId: number) {
       .eq('id', id)
 
     if (error) throw new Error(error.message)
-    const revalidateUrl = new URL(
-      'https://www.vinito.store/api/revalidate-path'
-    )
-    revalidateUrl.searchParams.append('path', '/faq')
-    await fetch(revalidateUrl.toString())
+
+    revalidateStoreTag('faqs')
+
     return { success: true }
   } catch (error) {
     console.error('Error deleting FAQ:', error)
     throw error
   }
 }
-
-// TODO: Implemente revalidate after create/update/delete to update cache of ecommerce
