@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { revalidateStoreTag } from '@/lib/utils'
 
 type SettingData = {
   key: string
@@ -38,6 +39,9 @@ export async function updateSetting(id: string, data: SettingData) {
     const { error } = await supabase.from('settings').update(data).eq('id', id)
 
     if (error) throw new Error(error.message)
+
+    revalidateStoreTag('settings')
+
     return { success: true }
   } catch (error) {
     console.error('Error updating setting:', error)

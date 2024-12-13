@@ -46,11 +46,9 @@ export async function createFAQ(data: FAQData, adminId: number) {
       .select()
 
     if (error) throw new Error(error.message)
-    const revalidateUrl = new URL(
-      'https://www.vinito.store/api/revalidate-path'
-    )
-    revalidateUrl.searchParams.append('path', '/faq')
-    await fetch(revalidateUrl.toString())
+
+    revalidateStoreTag('faqs')
+
     return { success: true }
   } catch (error) {
     console.error('Error creating FAQ:', error)

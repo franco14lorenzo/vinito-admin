@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { revalidateStoreTag } from '@/lib/utils'
 
 type PaymentMethodData = {
   name: string
@@ -41,6 +42,8 @@ export async function updatePaymentMethod(
       .eq('id', id)
 
     if (error) throw error
+
+    revalidateStoreTag('payment_methods')
 
     return { success: true }
   } catch (error) {
