@@ -6,6 +6,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
 import * as z from 'zod'
 
+import { useRouter } from 'next/navigation'
+
 import { useCreateFAQ } from '@/app/(backoffice)/faqs/components/create-faq-context'
 import { StatusBadge } from '@/components/status-badge'
 import { Button } from '@/components/ui/button'
@@ -40,7 +42,6 @@ import { Textarea } from '@/components/ui/textarea'
 import { createFAQ, getFAQById, updateFAQ } from '../actions'
 
 interface CreateFAQSheetProps {
-  editId?: string
   adminId?: string | null
 }
 
@@ -53,9 +54,12 @@ const faqFormSchema = z.object({
 
 type FAQFormValues = z.infer<typeof faqFormSchema>
 
-export function CreateFAQSheet({ editId, adminId }: CreateFAQSheetProps) {
-  const { isCreateOpen, handleOpenChange } = useCreateFAQ()
-  const [isLoading, setIsLoading] = useState(!!editId)
+export function CreateFAQSheet({
+  adminId
+}: Omit<CreateFAQSheetProps, 'editId'>) {
+  const router = useRouter()
+  const { isCreateOpen, isEditOpen, handleOpenChange } = useCreateFAQ()
+  const [isLoading, setIsLoading] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const form = useForm<FAQFormValues>({
@@ -69,10 +73,11 @@ export function CreateFAQSheet({ editId, adminId }: CreateFAQSheetProps) {
   })
 
   useEffect(() => {
-    if (editId) {
+    if (isEditOpen) {
+      setIsLoading(true)
       const fetchFAQ = async () => {
         try {
-          const { data } = await getFAQById(editId)
+          const { data } = await getFAQById(isEditOpen)
           const { status, ...rest } = data
           if (status === 'deleted') {
             toast.error('La FAQ ha sido eliminada')
@@ -96,8 +101,7 @@ export function CreateFAQSheet({ editId, adminId }: CreateFAQSheetProps) {
         status: 'draft'
       })
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editId])
+  }, [isEditOpen, form, handleOpenChange])
 
   const onSubmit = async (data: FAQFormValues) => {
     if (!adminId) {
@@ -107,25 +111,28 @@ export function CreateFAQSheet({ editId, adminId }: CreateFAQSheetProps) {
 
     setIsSubmitting(true)
     try {
-      if (editId) {
-        await updateFAQ(editId, data, Number(adminId))
+      if (isEditOpen) {
+        await updateFAQ(isEditOpen, data, Number(adminId))
       } else {
         await createFAQ(data, Number(adminId))
       }
 
-      toast.success(`FAQ ${editId ? 'actualizada' : 'creada'} correctamente`)
+      toast.success(
+        `FAQ ${isEditOpen ? 'actualizada' : 'creada'} correctamente`
+      )
       handleOpenChange(false)
       form.reset()
+      router.refresh()
     } catch (error) {
       console.error('Error:', error)
-      toast.error(`No se pudo ${editId ? 'actualizar' : 'crear'} la FAQ`)
+      toast.error(`No se pudo ${isEditOpen ? 'actualizar' : 'crear'} la FAQ`)
     } finally {
       setIsSubmitting(false)
     }
   }
 
   const renderFormContent = () => {
-    if (editId && isLoading) {
+    if (isEditOpen && isLoading) {
       return (
         <div className="flex flex-col space-y-4">
           <div className="space-y-2">
@@ -249,12 +256,17 @@ export function CreateFAQSheet({ editId, adminId }: CreateFAQSheetProps) {
   }
 
   return (
-    <Sheet open={isCreateOpen} onOpenChange={handleOpenChange}>
+    <Sheet
+      open={isCreateOpen || !!isEditOpen}
+      onOpenChange={(open) => handleOpenChange(open)}
+    >
       <SheetContent className="flex flex-col">
         <SheetHeader>
-          <SheetTitle>{editId ? 'Editar FAQ' : 'Crear nueva FAQ'}</SheetTitle>
+          <SheetTitle>
+            {isEditOpen ? 'Editar FAQ' : 'Crear nueva FAQ'}
+          </SheetTitle>
           <SheetDescription className="sr-only">
-            {editId
+            {isEditOpen
               ? 'Edita los detalles de la FAQ existente.'
               : 'Completa el formulario para crear una nueva FAQ.'}
           </SheetDescription>
@@ -270,6 +282,7 @@ export function CreateFAQSheet({ editId, adminId }: CreateFAQSheetProps) {
               <Separator className="my-4" />
               <SheetFooter>
                 <Button
+                  type="button"
                   variant="outline"
                   onClick={() => handleOpenChange(false)}
                   disabled={isLoading || isSubmitting}
@@ -281,7 +294,7 @@ export function CreateFAQSheet({ editId, adminId }: CreateFAQSheetProps) {
                     ? 'Guardando...'
                     : isLoading
                     ? 'Cargando...'
-                    : editId
+                    : isEditOpen
                     ? 'Actualizar'
                     : 'Crear'}{' '}
                   FAQ

@@ -2,8 +2,6 @@
 
 import { createContext, ReactNode, useContext, useState } from 'react'
 
-import { useRouter } from 'next/navigation'
-
 interface CreateFAQContextProps {
   isCreateOpen: boolean
   setIsCreateOpen: (isOpen: boolean) => void
@@ -16,38 +14,24 @@ const CreateFAQContext = createContext<CreateFAQContextProps | undefined>(
   undefined
 )
 
-export const CreateFAQProvider = ({
-  isCreateOpenParams,
-  isEditOpenParams,
-  children
-}: {
-  isCreateOpenParams: boolean
-  isEditOpenParams: string
-  children: ReactNode
-}) => {
-  const router = useRouter()
-
-  const [isCreateOpen, setIsCreateOpen] = useState(isCreateOpenParams)
-  const [isEditOpen, setIsEditOpen] = useState(isEditOpenParams)
+export const CreateFAQProvider = ({ children }: { children: ReactNode }) => {
+  const [isCreateOpen, setIsCreateOpen] = useState(false)
+  const [isEditOpen, setIsEditOpen] = useState('')
 
   const handleOpenChange = (isOpen: boolean, editId?: string) => {
-    setIsCreateOpen(isOpen)
-    setIsEditOpen(editId || '')
-
-    const searchParams = new URLSearchParams(window.location.search)
-    const current = new URLSearchParams(searchParams)
-
-    if (isOpen) {
-      if (editId) {
-        current.set('edit', editId)
-      } else {
-        current.set('create', 'true')
-      }
-    } else {
-      current.delete('create')
-      current.delete('edit')
+    if (!isOpen) {
+      setIsCreateOpen(false)
+      setIsEditOpen('')
+      return
     }
-    router.push(`?${current.toString()}`, { scroll: false })
+
+    if (editId) {
+      setIsEditOpen(editId)
+      setIsCreateOpen(false)
+    } else {
+      setIsCreateOpen(true)
+      setIsEditOpen('')
+    }
   }
 
   return (

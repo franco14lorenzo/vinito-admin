@@ -20,8 +20,6 @@ export default async function FAQsPage({
 }) {
   const awaitedSearchParams = await searchParams
   const params: FAQParams = {
-    create: awaitedSearchParams.create as string,
-    edit: awaitedSearchParams.edit as string,
     page: Number(awaitedSearchParams.page) || 1,
     perPage: Number(awaitedSearchParams.perPage) || 10,
     orderBy: {
@@ -44,8 +42,6 @@ export default async function FAQsPage({
     search: (awaitedSearchParams.search as string) || ''
   }
 
-  const editId = params.edit ? parseInt(params.edit, 10) : undefined
-
   const { data, error, count } = await getFAQs(
     params,
     params.visibleColumns || []
@@ -60,10 +56,7 @@ export default async function FAQsPage({
   const session = await auth()
 
   return (
-    <CreateFAQProvider
-      isCreateOpenParams={params.create === 'true'}
-      isEditOpenParams={editId ? String(editId) : ''}
-    >
+    <CreateFAQProvider>
       <div className="flex h-[calc(100dvh-80px)] w-full flex-col gap-4 p-4">
         <div className="flex-none">
           <div className="flex items-center justify-between">
@@ -82,10 +75,7 @@ export default async function FAQsPage({
             />
           </div>
         </div>
-        <CreateFAQSheet
-          adminId={session?.user?.id}
-          editId={editId ? String(editId) : undefined}
-        />
+        <CreateFAQSheet adminId={session?.user?.id} />
       </div>
     </CreateFAQProvider>
   )

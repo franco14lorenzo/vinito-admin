@@ -104,9 +104,6 @@ export function DataTable({
   }
 
   const handleEdit = (id: string | number) => {
-    const current = new URLSearchParams(Array.from(searchParams.entries()))
-    current.set('edit', String(id))
-    router.push(`${pathname}?${current.toString()}`, { scroll: false })
     handleOpenChange(true, String(id))
   }
 
@@ -132,7 +129,7 @@ export function DataTable({
             return (
               <TableActionsDropdown
                 id={faq.id}
-                onEdit={handleEdit}
+                onEdit={() => handleEdit(faq.id)}
                 onDelete={handleDelete}
               />
             )
