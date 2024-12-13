@@ -6,6 +6,9 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
 import * as z from 'zod'
 
+import { useRouter } from 'next/navigation'
+
+import { StatusBadge } from '@/components/status-badge'
 import { Button } from '@/components/ui/button'
 import {
   Form,
@@ -45,12 +48,11 @@ const formSchema = z.object({
 })
 
 export function EditPaymentMethodSheet({
-  adminId,
-  editId
+  adminId
 }: {
   adminId?: string | null
-  editId?: string
 }) {
+  const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { isEditOpen, handleOpenChange } = useEditPaymentMethod()
@@ -64,11 +66,12 @@ export function EditPaymentMethodSheet({
   })
 
   useEffect(() => {
-    if (editId) {
+    if (isEditOpen) {
       setIsLoading(true)
-      async function loadPaymentMethod(id: string) {
+      async function loadPaymentMethod() {
         try {
-          const { data } = await getPaymentMethodById(id)
+          const { data } = await getPaymentMethodById(isEditOpen)
+
           form.reset({
             ...data,
             status:
@@ -85,9 +88,9 @@ export function EditPaymentMethodSheet({
         }
       }
 
-      loadPaymentMethod(editId)
+      loadPaymentMethod()
     }
-  }, [editId, form])
+  }, [isEditOpen, form])
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!adminId) {
@@ -97,7 +100,7 @@ export function EditPaymentMethodSheet({
 
     setIsSubmitting(true)
     try {
-      if (!editId) {
+      if (!isEditOpen) {
         throw new Error('No se pudo obtener el ID del método de pago')
       }
       const payload = {
@@ -106,8 +109,9 @@ export function EditPaymentMethodSheet({
         updated_by: Number(adminId)
       }
 
-      await updatePaymentMethod(editId, payload)
+      await updatePaymentMethod(isEditOpen, payload)
       toast.success('Método de pago actualizado correctamente')
+      router.refresh()
     } catch (error) {
       toast.error('Ocurrió un error al actualizar el método de pago')
     } finally {
@@ -176,8 +180,15 @@ export function EditPaymentMethodSheet({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="active">Activo</SelectItem>
-                        <SelectItem value="inactive">Inactivo</SelectItem>
+                        <SelectItem value="draft">
+                          <StatusBadge status="draft" />
+                        </SelectItem>
+                        <SelectItem value="active">
+                          <StatusBadge status="active" />
+                        </SelectItem>
+                        <SelectItem value="inactive">
+                          <StatusBadge status="inactive" />
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />

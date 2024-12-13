@@ -1,8 +1,6 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState } from 'react'
-
-import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { createContext, useContext, useState } from 'react'
 
 interface EditPaymentMethodContextData {
   isEditOpen: string
@@ -17,38 +15,23 @@ const EditPaymentMethodContext = createContext<EditPaymentMethodContextData>({
 })
 
 export function EditPaymentMethodProvider({
-  children,
-  isEditOpenParams
+  children
 }: {
   children: React.ReactNode
-  isEditOpenParams: string
 }) {
-  const [isEditOpen, setIsEditOpen] = useState(isEditOpenParams)
-  const router = useRouter()
-  const pathname = usePathname()
-  const searchParams = useSearchParams()
-
-  useEffect(() => {
-    setIsEditOpen(isEditOpenParams)
-  }, [isEditOpenParams])
+  const [isEditOpen, setIsEditOpen] = useState('')
 
   const handleOpenChange = (isOpen: boolean, editId?: string) => {
-    setIsEditOpen(editId || '')
-
-    const current = new URLSearchParams(Array.from(searchParams.entries()))
-
-    if (isOpen) {
-      if (editId) {
-        current.set('edit', editId)
-      } else {
-        current.set('create', 'true')
-      }
-    } else {
-      current.delete('create')
-      current.delete('edit')
+    if (!isOpen) {
+      setIsEditOpen('')
+      return
     }
 
-    router.push(`${pathname}?${current.toString()}`, { scroll: false })
+    if (editId) {
+      setIsEditOpen(editId)
+    } else {
+      setIsEditOpen('')
+    }
   }
 
   return (

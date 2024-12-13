@@ -23,7 +23,6 @@ import { TableContent } from '@/components/blocks/table/table-content'
 import { TableControls } from '@/components/blocks/table/table-controls'
 import { TablePagination } from '@/components/blocks/table/table-pagination'
 
-/* import { deletePaymentMethod } from '../actions' */
 import type { ColumnsDefinition, PaymentMethodColumn } from './columns'
 import { useEditPaymentMethod } from './edit-payment-method-context'
 
@@ -78,7 +77,9 @@ export function DataTable({
         : updaterOrValue
 
     setSorting(newSorting)
-    const current = new URLSearchParams(Array.from(searchParams.entries()))
+    const current = new URLSearchParams(
+      Array.from(searchParams.entries()) as [string, string][]
+    )
 
     if (newSorting.length > 0) {
       const sortItem = newSorting[0]
@@ -96,9 +97,6 @@ export function DataTable({
   }
 
   const handleEdit = (id: string | number) => {
-    const current = new URLSearchParams(Array.from(searchParams.entries()))
-    current.set('edit', String(id))
-    router.push(`${pathname}?${current.toString()}`, { scroll: false })
     handleOpenChange(true, String(id))
   }
 
@@ -124,8 +122,7 @@ export function DataTable({
             return (
               <TableActionsDropdown
                 id={paymentMethod.id}
-                onEdit={handleEdit}
-                /*    onDelete={handleDelete} */
+                onEdit={() => handleEdit(paymentMethod.id)}
               />
             )
           }

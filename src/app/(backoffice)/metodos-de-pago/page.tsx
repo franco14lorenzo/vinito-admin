@@ -6,7 +6,8 @@ import { EditPaymentMethodProvider } from '@/app/(backoffice)/metodos-de-pago/co
 import { EditPaymentMethodSheet } from '@/app/(backoffice)/metodos-de-pago/components/edit-payment-method-sheet'
 import {
   DEFAULT_COLUMNS,
-  DEFAULT_ORDER
+  DEFAULT_ORDER,
+  FILTERS
 } from '@/app/(backoffice)/metodos-de-pago/constants'
 import {
   PaymentMethod,
@@ -23,7 +24,6 @@ export default async function PaymentMethodsPage({
 }) {
   const awaitedSearchParams = await searchParams
   const params: PaymentMethodParams = {
-    edit: awaitedSearchParams.edit as string,
     page: Number(awaitedSearchParams.page) || 1,
     perPage: Number(awaitedSearchParams.perPage) || 10,
     visibleColumns: awaitedSearchParams.columns
@@ -43,8 +43,6 @@ export default async function PaymentMethodsPage({
     }
   }
 
-  const editId = params.edit ? parseInt(params.edit, 10) : undefined
-
   const { data, error, count } = await getPaymentMethods(
     params,
     params.visibleColumns || []
@@ -59,7 +57,7 @@ export default async function PaymentMethodsPage({
   const session = await auth()
 
   return (
-    <EditPaymentMethodProvider isEditOpenParams={editId ? String(editId) : ''}>
+    <EditPaymentMethodProvider>
       <div className="flex h-[calc(100dvh-80px)] w-full flex-col gap-4 p-4">
         <div className="flex-none">
           <div className="flex items-center justify-between">
@@ -78,10 +76,7 @@ export default async function PaymentMethodsPage({
             />
           </div>
         </div>
-        <EditPaymentMethodSheet
-          adminId={session?.user?.id}
-          editId={editId ? String(editId) : undefined}
-        />
+        <EditPaymentMethodSheet adminId={session?.user?.id} />
       </div>
     </EditPaymentMethodProvider>
   )
@@ -95,7 +90,7 @@ async function getPaymentMethods(
     page = 1,
     perPage = 10,
     orderBy = DEFAULT_ORDER,
-    filters = {}
+    filters = { status: FILTERS[0].defaultSelected }
   } = params
 
   const supabase = await createClient()
