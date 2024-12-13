@@ -55,7 +55,7 @@ type FAQFormValues = z.infer<typeof faqFormSchema>
 
 export function CreateFAQSheet({ editId, adminId }: CreateFAQSheetProps) {
   const { isCreateOpen, handleOpenChange } = useCreateFAQ()
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(!!editId)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const form = useForm<FAQFormValues>({
@@ -70,7 +70,6 @@ export function CreateFAQSheet({ editId, adminId }: CreateFAQSheetProps) {
 
   useEffect(() => {
     if (editId) {
-      setIsLoading(true)
       const fetchFAQ = async () => {
         try {
           const { data } = await getFAQById(editId)
@@ -97,7 +96,8 @@ export function CreateFAQSheet({ editId, adminId }: CreateFAQSheetProps) {
         status: 'draft'
       })
     }
-  }, [editId, form, handleOpenChange])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editId])
 
   const onSubmit = async (data: FAQFormValues) => {
     if (!adminId) {
