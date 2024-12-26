@@ -103,6 +103,7 @@ export function TablePagination({
 
             <div className="flex items-center border-l border-input">
               <Button
+                type="button"
                 className="aspect-square p-0"
                 variant="ghost"
                 size="sm"
@@ -112,6 +113,7 @@ export function TablePagination({
                 <ChevronLeft className="h-4 w-4" />
               </Button>
               <Button
+                type="button"
                 className="aspect-square p-0"
                 variant="ghost"
                 size="sm"

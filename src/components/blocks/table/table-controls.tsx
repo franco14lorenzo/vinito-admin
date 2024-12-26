@@ -87,7 +87,8 @@ export function TableControls<TData>({
     }, 300)
 
     return () => clearTimeout(handler)
-  }, [searchValue, router, pathname, searchParams])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchValue])
 
   useEffect(() => {
     if (filters.length === 0) return

@@ -28,8 +28,11 @@ export default async function AccommodationsPage({
     page: Number(awaitedSearchParams.page) || 1,
     perPage: Number(awaitedSearchParams.perPage) || 10,
     orderBy: {
-      column: (awaitedSearchParams.sortBy as string) || 'name',
-      ascending: awaitedSearchParams.sortOrder !== 'desc'
+      column: (awaitedSearchParams.sortBy as string) || DEFAULT_ORDER.column,
+      ascending:
+        awaitedSearchParams.sortOrder === undefined
+          ? DEFAULT_ORDER.ascending
+          : awaitedSearchParams.sortOrder !== 'desc'
     },
     filters: {
       name: awaitedSearchParams.name as string,

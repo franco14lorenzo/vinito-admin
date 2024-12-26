@@ -20,9 +20,9 @@ import type {
   ColumnsDefinition
 } from '@/app/(backoffice)/alojamientos/components/columns'
 import { useCreateAccommodation } from '@/app/(backoffice)/alojamientos/components/create-accommodation-context'
+import { TableActionsDropdown } from '@/app/(backoffice)/alojamientos/components/table-actions-dropdown'
 import { FILTERS } from '@/app/(backoffice)/alojamientos/constants'
 import type { Accommodation } from '@/app/(backoffice)/alojamientos/types'
-import { TableActionsDropdown } from '@/components/blocks/table/table-actions-dropdown'
 import { TableContent } from '@/components/blocks/table/table-content'
 import { TableControls } from '@/components/blocks/table/table-controls'
 import { TablePagination } from '@/components/blocks/table/table-pagination'

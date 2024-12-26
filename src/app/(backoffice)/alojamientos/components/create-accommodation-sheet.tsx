@@ -91,7 +91,7 @@ export function CreateAccommodationSheet({
           const { data } = await getAccommodationById(isEditOpen)
           const { status, latitude, longitude, ...rest } = data
           if (status === 'deleted') {
-            toast.error('La Accommodation ha sido eliminada')
+            toast.error('El alojamiento ha sido eliminado')
             handleOpenChange(false)
             return
           }
@@ -103,7 +103,7 @@ export function CreateAccommodationSheet({
           })
         } catch (error) {
           console.error('Error:', error)
-          toast.error('Error al cargar la Accommodation')
+          toast.error('Error al cargar la información del alojamiento')
         } finally {
           setIsLoading(false)
         }
@@ -149,7 +149,7 @@ export function CreateAccommodationSheet({
     } catch (error) {
       console.error('Error:', error)
       toast.error(
-        `No se pudo ${isEditOpen ? 'actualizar' : 'crear'} la Accommodation`
+        `No se pudo ${isEditOpen ? 'actualizar' : 'crear'} el alojamiento`
       )
     } finally {
       setIsSubmitting(false)
@@ -202,7 +202,10 @@ export function CreateAccommodationSheet({
             <FormItem>
               <FormLabel>Dirección</FormLabel>
               <FormControl>
-                <Input {...field} />
+                <Input
+                  {...field}
+                  placeholder="Ej: Dpto. 1, Piso 2, Calle Falsa 123, Springfield, EEUU"
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -318,12 +321,19 @@ export function CreateAccommodationSheet({
                   type="button"
                   variant="outline"
                   onClick={() => handleOpenChange(false)}
-                  disabled={isSubmitting}
+                  disabled={isLoading || isSubmitting}
                 >
                   Cancelar
                 </Button>
-                <Button type="submit" disabled={isSubmitting}>
-                  {isEditOpen ? 'Actualizar' : 'Crear'}
+                <Button type="submit" disabled={isLoading || isSubmitting}>
+                  {isSubmitting
+                    ? 'Guardando...'
+                    : isLoading
+                    ? 'Cargando...'
+                    : isEditOpen
+                    ? 'Actualizar'
+                    : 'Crear'}{' '}
+                  alojamiento
                 </Button>
               </SheetFooter>
             </div>

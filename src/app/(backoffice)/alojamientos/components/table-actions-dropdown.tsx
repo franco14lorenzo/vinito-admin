@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Copy, MoreHorizontal, Pencil, Trash } from 'lucide-react'
+import { Copy, Link, MoreHorizontal, Pencil, Trash } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
@@ -21,6 +21,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
+import { getStoreBaseUrl } from '@/lib/utils'
 
 interface TableActionsDropdownProps {
   id: number | string
@@ -34,6 +35,9 @@ export function TableActionsDropdown({
   onDelete
 }: TableActionsDropdownProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const accessStoreUrl = `${getStoreBaseUrl(
+    process.env.NEXT_PUBLIC_ENVIRONMENT as string
+  )}/?accommodation_id=${id}`
 
   return (
     <>
@@ -55,6 +59,16 @@ export function TableActionsDropdown({
           >
             Copiar ID
             <Copy className="h-4 w-4" />
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            className="inline-flex w-full cursor-pointer items-center justify-between"
+            onClick={() => {
+              navigator.clipboard.writeText(String(accessStoreUrl))
+              toast.success('Link copiado al portapapeles')
+            }}
+          >
+            Copiar Link
+            <Link className="h-4 w-4" />
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           {onEdit && (

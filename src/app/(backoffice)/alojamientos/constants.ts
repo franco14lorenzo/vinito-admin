@@ -10,8 +10,8 @@ export const DEFAULT_COLUMNS = [
 ]
 
 export const DEFAULT_ORDER = {
-  column: 'name',
-  ascending: true
+  column: 'updated_at',
+  ascending: false
 }
 
 export const STATUS_FILTERS = [
