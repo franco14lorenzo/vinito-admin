@@ -44,7 +44,7 @@ export type Database = {
           latitude: number | null
           longitude: number | null
           name: string
-          qr_code: string
+          qr_code: string | null
           status: Database['public']['Enums']['accommodation_status']
           updated_at: string
           updated_by: number | null
@@ -57,7 +57,7 @@ export type Database = {
           latitude?: number | null
           longitude?: number | null
           name: string
-          qr_code: string
+          qr_code?: string | null
           status?: Database['public']['Enums']['accommodation_status']
           updated_at?: string
           updated_by?: number | null
@@ -70,7 +70,7 @@ export type Database = {
           latitude?: number | null
           longitude?: number | null
           name?: string
-          qr_code?: string
+          qr_code?: string | null
           status?: Database['public']['Enums']['accommodation_status']
           updated_at?: string
           updated_by?: number | null
@@ -310,6 +310,21 @@ export type Database = {
             referencedColumns: ['id']
           }
         ]
+      }
+      faqs_reorder_lock: {
+        Row: {
+          id: number
+          locked: boolean | null
+        }
+        Insert: {
+          id?: number
+          locked?: boolean | null
+        }
+        Update: {
+          id?: number
+          locked?: boolean | null
+        }
+        Relationships: []
       }
       order_tastings: {
         Row: {

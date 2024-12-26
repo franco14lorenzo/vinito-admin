@@ -51,7 +51,6 @@ const accommodationFormSchema = z.object({
   name: z.string().min(1, 'El nombre es requerido'),
   address: z.string().min(1, 'La dirección es requerida'),
   status: z.enum(['draft', 'active', 'inactive']),
-  qr_code: z.string().min(1, 'El código QR es requerido'),
   latitude: z
     .string()
     .refine((val) => !val || !isNaN(Number(val)), 'Debe ser un número válido')
@@ -79,7 +78,6 @@ export function CreateAccommodationSheet({
       name: '',
       address: '',
       status: 'draft',
-      qr_code: '',
       latitude: '',
       longitude: ''
     }
@@ -116,7 +114,6 @@ export function CreateAccommodationSheet({
         name: '',
         address: '',
         status: 'draft',
-        qr_code: '',
         latitude: '',
         longitude: ''
       })
@@ -239,23 +236,6 @@ export function CreateAccommodationSheet({
                   </SelectItem>
                 </SelectContent>
               </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          name="qr_code"
-          control={form.control}
-          render={({
-            field
-          }: {
-            field: ControllerRenderProps<AccommodationFormValues, 'qr_code'>
-          }) => (
-            <FormItem>
-              <FormLabel>Código QR</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
               <FormMessage />
             </FormItem>
           )}

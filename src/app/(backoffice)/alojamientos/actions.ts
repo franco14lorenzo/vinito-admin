@@ -8,7 +8,6 @@ import { createClient } from '@/lib/supabase/server'
 type AccommodationData = {
   name: string
   address: string
-  qr_code: string
   status: 'active' | 'inactive' | 'draft'
 }
 
