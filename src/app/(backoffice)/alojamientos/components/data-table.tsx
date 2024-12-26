@@ -110,11 +110,11 @@ export function DataTable({
   const handleDelete = async (id: string | number) => {
     try {
       await deleteAccommodation(String(id), Number(adminId))
-      toast.success('Accommodation eliminada correctamente')
+      toast.success('Alojamiento eliminado correctamente')
       router.refresh()
     } catch (error) {
       console.error('Error:', error)
-      toast.error('Error eliminando la Accommodation')
+      toast.error('Error eliminando el alojamiento')
     }
   }
 
