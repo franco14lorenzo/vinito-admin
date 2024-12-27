@@ -85,7 +85,7 @@ const navMain = [
       {
         icon: TruckIcon,
         title: 'Horarios de Entrega',
-        url: '/horarios'
+        url: '/horarios-de-entrega'
       }
     ]
   },
