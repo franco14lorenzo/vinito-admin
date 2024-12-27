@@ -37,6 +37,7 @@ import {
   SheetTitle
 } from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Spinner } from '@/components/ui/spinner'
 import { Textarea } from '@/components/ui/textarea'
 
 import { createFAQ, getFAQById, updateFAQ } from '../actions'
@@ -289,15 +290,18 @@ export function CreateFAQSheet({
                 >
                   Cancelar
                 </Button>
-                <Button type="submit" disabled={isLoading || isSubmitting}>
-                  {isSubmitting
-                    ? 'Guardando...'
-                    : isLoading
-                    ? 'Cargando...'
-                    : isEditOpen
-                    ? 'Actualizar'
-                    : 'Crear'}{' '}
-                  FAQ
+                <Button
+                  type="submit"
+                  disabled={isLoading || isSubmitting}
+                  className="w-32"
+                >
+                  {isSubmitting || isLoading ? (
+                    <Spinner size={16} />
+                  ) : isEditOpen ? (
+                    'Actualizar FAQ'
+                  ) : (
+                    'Crear FAQ'
+                  )}
                 </Button>
               </SheetFooter>
             </div>

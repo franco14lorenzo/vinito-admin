@@ -42,6 +42,7 @@ import {
   SheetTitle
 } from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Spinner } from '@/components/ui/spinner'
 
 interface CreateAccommodationSheetProps {
   adminId?: string | null
@@ -325,15 +326,18 @@ export function CreateAccommodationSheet({
                 >
                   Cancelar
                 </Button>
-                <Button type="submit" disabled={isLoading || isSubmitting}>
-                  {isSubmitting
-                    ? 'Guardando...'
-                    : isLoading
-                    ? 'Cargando...'
-                    : isEditOpen
-                    ? 'Actualizar'
-                    : 'Crear'}{' '}
-                  alojamiento
+                <Button
+                  type="submit"
+                  disabled={isLoading || isSubmitting}
+                  className="w-44"
+                >
+                  {isSubmitting || isLoading ? (
+                    <Spinner size={16} />
+                  ) : isEditOpen ? (
+                    'Actualizar alojamiento'
+                  ) : (
+                    'Crear alojamiento'
+                  )}
                 </Button>
               </SheetFooter>
             </div>
