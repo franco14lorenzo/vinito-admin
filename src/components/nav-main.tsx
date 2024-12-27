@@ -65,12 +65,12 @@ const navMain = [
       {
         icon: Users,
         title: 'Listado de Clientes',
-        url: '/clientes'
+        url: '/listado-de-clientes'
       },
       {
         icon: Mail,
         title: 'Mensajes de Contacto',
-        url: '/mensajes'
+        url: '/mensajes-de-contacto'
       }
     ]
   },
