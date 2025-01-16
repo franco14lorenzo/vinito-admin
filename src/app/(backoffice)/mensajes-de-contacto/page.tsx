@@ -1,6 +1,6 @@
 import { PostgrestError } from '@supabase/supabase-js'
 
-import { auth } from '@/lib/auth'
+/* import { auth } from '@/lib/auth' */ // TODO: Uncomment this line
 import { createClient } from '@/lib/supabase/server'
 
 import { columns } from './components/columns'
