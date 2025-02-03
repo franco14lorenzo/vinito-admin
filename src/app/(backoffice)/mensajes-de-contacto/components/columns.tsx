@@ -26,7 +26,7 @@ const columnsDefinition: ContactColumn[] = [
     cell: ({ row }) => {
       const status = STATUS.find((s) => s.value === row.getValue('status'))
       const isUnread = row.getValue('status') === 'unread'
-      const isanswered = row.getValue('status') === 'answered'
+      const isAnswered = row.getValue('status') === 'answered'
       return (
         <TooltipProvider>
           <Tooltip>
@@ -35,8 +35,8 @@ const columnsDefinition: ContactColumn[] = [
                 className={`flex items-center justify-center ${
                   isUnread
                     ? 'font-semibold'
-                    : isanswered
-                    ? 'font-extralight'
+                    : isAnswered
+                    ? 'font-extralight text-gray-400'
                     : ''
                 }`}
               >
@@ -70,7 +70,7 @@ const columnsDefinition: ContactColumn[] = [
           row.getValue('status') === 'unread'
             ? 'font-semibold'
             : row.getValue('status') === 'answered'
-            ? 'font-extralight'
+            ? 'font-extralight text-gray-400'
             : ''
         }`}
       >
@@ -88,7 +88,7 @@ const columnsDefinition: ContactColumn[] = [
           row.getValue('status') === 'unread'
             ? 'font-semibold'
             : row.getValue('status') === 'answered'
-            ? 'font-extralight'
+            ? 'font-extralight text-gray-400'
             : ''
         }`}
       >
@@ -106,7 +106,7 @@ const columnsDefinition: ContactColumn[] = [
           row.getValue('status') === 'unread'
             ? 'font-semibold'
             : row.getValue('status') === 'answered'
-            ? 'font-extralight'
+            ? 'font-extralight text-gray-400'
             : ''
         }`}
       >
@@ -124,7 +124,7 @@ const columnsDefinition: ContactColumn[] = [
           row.getValue('status') === 'unread'
             ? 'font-semibold'
             : row.getValue('status') === 'answered'
-            ? 'font-extralight'
+            ? 'font-extralight text-gray-400'
             : ''
         }`}
       >
@@ -145,7 +145,7 @@ const columnsDefinition: ContactColumn[] = [
           row.getValue('status') === 'unread'
             ? 'font-semibold'
             : row.getValue('status') === 'answered'
-            ? 'font-extralight'
+            ? 'font-extralight text-gray-400'
             : ''
         }`}
       >
