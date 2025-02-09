@@ -1,6 +1,10 @@
 'use client'
 import { Column } from '@tanstack/react-table'
-import { ArrowDown, ArrowUp } from 'lucide-react'
+import {
+  ArrowDownNarrowWide,
+  ArrowDownUp,
+  ArrowUpWideNarrow
+} from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -27,11 +31,13 @@ function SortableHeader<T>({ column, label }: SortableHeaderProps<T>) {
         <Button variant={'ghost'} className="flex items-center gap-1">
           {label}
           <div className="ml-1 flex items-center">
-            {isAsc && <ArrowUp className="h-4 w-4 text-muted-foreground/30" />}
-            {isDesc && (
-              <ArrowDown className="h-4 w-4 text-muted-foreground/30" />
+            {isAsc && (
+              <ArrowDownNarrowWide className="h-4 w-4 text-muted-foreground/30" />
             )}
-            {!isSorted && <ArrowUp className="h-4 w-4" />}
+            {isDesc && (
+              <ArrowUpWideNarrow className="h-4 w-4 text-muted-foreground/30" />
+            )}
+            {!isSorted && <ArrowDownUp className="h-4 w-4" />}
           </div>
         </Button>
       </DropdownMenuTrigger>
@@ -41,7 +47,7 @@ function SortableHeader<T>({ column, label }: SortableHeaderProps<T>) {
           disabled={isAsc}
           className="flex items-center gap-2"
         >
-          <ArrowUp className="h-4 w-4" />
+          <ArrowDownNarrowWide className="h-4 w-4" />
           Ascendente
         </DropdownMenuItem>
         <DropdownMenuItem
@@ -49,7 +55,7 @@ function SortableHeader<T>({ column, label }: SortableHeaderProps<T>) {
           disabled={isDesc}
           className="flex items-center gap-2"
         >
-          <ArrowDown className="h-4 w-4" />
+          <ArrowUpWideNarrow className="h-4 w-4" />
           Descendente
         </DropdownMenuItem>
         {isSorted && (
