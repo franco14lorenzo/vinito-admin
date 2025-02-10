@@ -53,14 +53,14 @@ interface CreateWineSheetProps {
 }
 
 const wineFormSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
+  name: z.string().min(1, 'El nombre es requerido'),
   description: z.string().optional(),
-  winery: z.string().min(1, 'Winery is required'),
-  year: z.number().min(1900, 'Year is required'),
-  variety: z.string().min(1, 'Variety is required'),
-  volume_ml: z.number().min(1, 'Volume is required'),
-  price: z.number().min(0, 'Price is required'),
-  cost_usd_blue: z.number().min(0, 'Cost is required'),
+  winery: z.string().min(1, 'La bodega es requerida'),
+  year: z.number().min(1900, 'Año inválido'),
+  variety: z.string().min(1, 'El varietal es requerido'),
+  volume_ml: z.number().min(1, 'El volumen es requerido'),
+  price: z.number().min(0, 'El precio es requerido'),
+  cost_usd_blue: z.number().min(0, 'El costo es requerido'),
   status: z.enum(['draft', 'active', 'inactive']),
   stock: z.number().optional(),
   image: z
@@ -114,7 +114,7 @@ export function CreateWineSheet({
           const { data } = await getWineById(isEditOpen)
           const { status, description, image, stock, ...rest } = data
           if (status === 'deleted') {
-            toast.error('This wine is deleted')
+            toast.error('El vino no existe')
             handleOpenChange(false)
             return
           }
@@ -125,11 +125,11 @@ export function CreateWineSheet({
             image: image || '',
             stock: stock || 0
           })
-          // Set image preview if there's an existing image
+
           setImagePreview(image || null)
         } catch (error) {
           console.error('Error fetching wine:', error)
-          toast.error('Error fetching wine data')
+          toast.error('Se produjo un error al cargar el vino')
         } finally {
           setIsLoading(false)
         }
@@ -148,7 +148,7 @@ export function CreateWineSheet({
         status: 'draft',
         image: ''
       })
-      // Reset image preview when sheet is closed
+
       setImagePreview(null)
     }
   }, [isEditOpen, form, handleOpenChange])
@@ -169,11 +169,9 @@ export function CreateWineSheet({
     try {
       setIsImageLoading(true)
 
-      // Create preview URL
       const objectUrl = URL.createObjectURL(file)
       setImagePreview(objectUrl)
 
-      // Set the file in the form
       form.setValue('image', file)
       setIsImageLoading(false)
     } catch (error) {
@@ -205,21 +203,21 @@ export function CreateWineSheet({
       const wineData = {
         ...data,
         image: imagePath,
-        stock: isEditOpen ? undefined : 0 // Set stock to 0 only for new wines
+        stock: isEditOpen ? undefined : 0
       }
 
       if (isEditOpen) {
         await updateWine(isEditOpen, wineData, Number(adminId))
-        toast.success('Wine updated successfully')
+        toast.success('Vino actualizado correctamente')
       } else {
         await createWine(wineData, Number(adminId))
-        toast.success('Wine created successfully')
+        toast.success('Vino creado correctamente')
       }
       handleOpenChange(false)
       router.refresh()
     } catch (error) {
       console.error('Error:', error)
-      toast.error('Error saving the wine')
+      toast.error('Se produjo un error al guardar el vino')
     } finally {
       setIsSubmitting(false)
     }
