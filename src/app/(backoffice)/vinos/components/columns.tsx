@@ -115,7 +115,7 @@ const columnsDefinition: WineColumn[] = [
         <div className="flex flex-col">
           <span className="text-xs font-medium text-gray-500">Stock</span>
           <span className="text-base font-semibold">
-            {row.original.stock} u.
+            {row.original.stock || 0} u.
           </span>
         </div>
 
