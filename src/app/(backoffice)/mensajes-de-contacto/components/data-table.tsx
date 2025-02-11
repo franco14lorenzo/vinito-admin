@@ -12,10 +12,11 @@ import {
   ContactColumn
 } from '@/app/(backoffice)/mensajes-de-contacto/components/columns'
 import { Contact } from '@/app/(backoffice)/mensajes-de-contacto/types'
-import { TableActionsDropdown } from '@/components/blocks/table/table-actions-dropdown'
 import { TableContent } from '@/components/blocks/table/table-content'
 import { TableControls } from '@/components/blocks/table/table-controls'
 import { TablePagination } from '@/components/blocks/table/table-pagination'
+
+import { TableActionsContactMessagesDropdown } from './table-actions-dropdown'
 
 interface DataTableProps {
   columns: ColumnsDefinition
@@ -30,14 +31,6 @@ export function DataTable({
   pageCount,
   totalRecords
 }: DataTableProps) {
-  const handleEdit = (id: string | number) => {
-    alert(`Editing contact: ${id}`)
-  }
-
-  const handleDelete = (id: string | number) => {
-    alert(`Deleting contact: ${id}`)
-  }
-
   const table = useReactTable({
     data,
     columns: columns.map((column: ContactColumn) => {
@@ -46,13 +39,7 @@ export function DataTable({
           ...column,
           cell: ({ row }) => {
             const contact = row.original as Contact
-            return (
-              <TableActionsDropdown
-                id={contact.id}
-                onEdit={() => handleEdit(contact.id)}
-                onDelete={() => handleDelete(contact.id)}
-              />
-            )
+            return <TableActionsContactMessagesDropdown id={contact.id} />
           }
         }
       }

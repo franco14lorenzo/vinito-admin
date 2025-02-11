@@ -1,6 +1,5 @@
 import { PostgrestError } from '@supabase/supabase-js'
 
-/* import { auth } from '@/lib/auth' */ // TODO: Uncomment this line
 import { createClient } from '@/lib/supabase/server'
 
 import { columns } from './components/columns'
@@ -68,7 +67,7 @@ async function getContacts(
   let countQuery = supabase
     .from('contacts')
     .select('id', { count: 'exact', head: true })
-    .neq('status', 'deleted') // Exclude deleted status
+    .neq('status', 'deleted')
 
   if (params.search) {
     countQuery = countQuery.or(
