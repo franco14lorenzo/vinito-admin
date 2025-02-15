@@ -7,6 +7,7 @@ import { ChevronDown, Columns3, PlusCircle } from 'lucide-react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 
 import { StatusBadge } from '@/components/status-badge'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
@@ -47,11 +48,18 @@ export function TableControls<TData>({
   const [searchValue, setSearchValue] = useState(
     searchParams.get('search') || ''
   )
-  const [selectedStatuses, setSelectedStatuses] = useState<string[]>(() => {
-    const statusParam = searchParams.get('status')
-    const defaultStatuses =
-      filters.find((filter) => filter.id === 'status')?.defaultSelected || []
-    return statusParam ? statusParam.split(',') : defaultStatuses
+  const [selectedFilterValues, setSelectedFilterValues] = useState<
+    Record<string, string[]>
+  >(() => {
+    const initialFilters: Record<string, string[]> = {}
+    filters.forEach((filter) => {
+      const filterParam = searchParams.get(filter.id)
+      const defaultValues = filter.defaultSelected || []
+      initialFilters[filter.id] = filterParam
+        ? filterParam.split(',')
+        : defaultValues
+    })
+    return initialFilters
   })
 
   const getColumnLabel = (column: Column<TData, unknown>) => {
@@ -92,13 +100,19 @@ export function TableControls<TData>({
 
   useEffect(() => {
     if (filters.length === 0) return
-    const statusParam = searchParams.get('status')
-    if (!statusParam) {
+
+    const firstFilter = filters[0]
+    if (!firstFilter) return
+
+    const filterParam = searchParams.get(firstFilter.id)
+    if (!filterParam) {
       const current = new URLSearchParams(Array.from(searchParams.entries()))
-      const defaultStatuses = filters.find((filter) => filter.id === 'status')
-        ?.defaultSelected || ['active', 'inactive', 'draft']
-      current.set('status', defaultStatuses.join(','))
-      router.push(`${pathname}?${current.toString()}`, { scroll: false })
+      const defaultValues = firstFilter.defaultSelected || []
+
+      if (defaultValues.length > 0) {
+        current.set(firstFilter.id, defaultValues.join(','))
+        router.push(`${pathname}?${current.toString()}`, { scroll: false })
+      }
     }
   }, [searchParams, router, pathname, filters])
 
@@ -122,9 +136,9 @@ export function TableControls<TData>({
     option: string,
     checked?: boolean
   ) => {
-    let filterValue: string[] = [...selectedStatuses]
+    let filterValue: string[] = [...(selectedFilterValues[filterId] || [])]
     if (checked === undefined) {
-      filterValue = selectedStatuses.includes(option)
+      filterValue = filterValue.includes(option)
         ? filterValue.filter((s) => s !== option)
         : [...filterValue, option]
     } else {
@@ -133,7 +147,11 @@ export function TableControls<TData>({
         : filterValue.filter((s) => s !== option)
     }
 
-    setSelectedStatuses(filterValue)
+    setSelectedFilterValues((prev) => ({
+      ...prev,
+      [filterId]: filterValue
+    }))
+
     table
       .getColumn(filterId)
       ?.setFilterValue(filterValue.length ? filterValue : undefined)
@@ -158,72 +176,111 @@ export function TableControls<TData>({
           className="w-full flex-shrink-0 flex-grow md:max-w-44"
         />
 
-        {filters.map((filter) => (
-          <DropdownMenu key={filter.id}>
-            <DropdownMenuTrigger asChild>
-              <ScrollArea className="max-w-full place-self-start md:place-self-center">
-                <Button
-                  variant="outline"
-                  className="flex w-fit items-center border-dashed"
-                >
-                  <PlusCircle className="h-4 w-4" />
-                  {filter.label}
-                  {selectedStatuses.length > 0 && (
-                    <>
-                      <div
-                        data-orientation="vertical"
-                        role="none"
-                        className="mx-2 h-4 w-[1px] shrink-0 bg-border"
-                      />
-                      {selectedStatuses.map((statusValue) =>
-                        renderFilterBadge ? (
-                          renderFilterBadge(statusValue)
-                        ) : (
-                          <StatusBadge
-                            key={statusValue}
-                            status={
-                              statusValue as 'active' | 'inactive' | 'draft'
-                            }
-                          />
-                        )
-                      )}
-                    </>
-                  )}
-                </Button>
-                <ScrollBar orientation="horizontal" />
-              </ScrollArea>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-fit px-2">
-              {filter.options.map((option) => {
-                const isChecked = selectedStatuses.includes(option.value)
-                return (
-                  <DropdownMenuItem
-                    key={option.value}
-                    onClick={() => handleFilterChange(filter.id, option.value)}
-                    className="flex items-center"
+        {filters.map((filter) => {
+          const selectedValuesForFilter = selectedFilterValues[filter.id] || []
+
+          return (
+            <DropdownMenu key={filter.id}>
+              <DropdownMenuTrigger asChild>
+                <ScrollArea className="max-w-full place-self-start md:place-self-center">
+                  <Button
+                    variant="outline"
+                    className="flex w-fit items-center border-dashed"
                   >
-                    <Checkbox
-                      checked={isChecked}
-                      onCheckedChange={(checked) =>
-                        handleFilterChange(
-                          filter.id,
-                          option.value,
-                          checked === true
-                        )
-                      }
-                      className="mr-0.5"
-                    />
-                    {renderFilterBadge ? (
-                      renderFilterBadge(option.value)
-                    ) : (
-                      <span className={option.className}>{option.label}</span>
+                    <PlusCircle className="h-4 w-4" />
+                    {filter.label}
+                    {selectedValuesForFilter.length > 0 && (
+                      <>
+                        <div
+                          data-orientation="vertical"
+                          role="none"
+                          className="mx-2 h-4 w-[1px] shrink-0 bg-border"
+                        />
+                        {selectedValuesForFilter.map((filterValue) => {
+                          if (renderFilterBadge) {
+                            return renderFilterBadge(filterValue)
+                          }
+
+                          if (filter.id === 'type') {
+                            return (
+                              <Badge
+                                key={filterValue}
+                                variant={
+                                  filterValue === 'entry'
+                                    ? 'success'
+                                    : 'destructive'
+                                }
+                              >
+                                {filterValue === 'entry' ? 'Entrada' : 'Salida'}
+                              </Badge>
+                            )
+                          }
+
+                          if (filter.id === 'status') {
+                            return (
+                              <StatusBadge
+                                key={filterValue}
+                                status={
+                                  filterValue as 'active' | 'inactive' | 'draft'
+                                }
+                              />
+                            )
+                          }
+
+                          const option = filter.options.find(
+                            (opt) => opt.value === filterValue
+                          )
+                          return (
+                            <span
+                              key={filterValue}
+                              className={option?.className}
+                            >
+                              {option?.label || filterValue}
+                            </span>
+                          )
+                        })}
+                      </>
                     )}
-                  </DropdownMenuItem>
-                )
-              })}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        ))}
+                  </Button>
+                  <ScrollBar orientation="horizontal" />
+                </ScrollArea>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-fit px-2">
+                {filter.options.map((option) => {
+                  const isChecked = selectedValuesForFilter.includes(
+                    option.value
+                  )
+                  return (
+                    <DropdownMenuItem
+                      key={option.value}
+                      onClick={() =>
+                        handleFilterChange(filter.id, option.value)
+                      }
+                      className="flex items-center"
+                    >
+                      <Checkbox
+                        checked={isChecked}
+                        onCheckedChange={(checked) =>
+                          handleFilterChange(
+                            filter.id,
+                            option.value,
+                            checked === true
+                          )
+                        }
+                        className="mr-0.5"
+                      />
+                      {renderFilterBadge ? (
+                        renderFilterBadge(option.value)
+                      ) : (
+                        <span className={option.className}>{option.label}</span>
+                      )}
+                    </DropdownMenuItem>
+                  )
+                })}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )
+        })}
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
