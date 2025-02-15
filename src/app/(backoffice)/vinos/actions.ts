@@ -134,3 +134,83 @@ export async function uploadImage(file: File) {
 
   return publicUrl
 }
+
+export async function getWine(id: number) {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('wines')
+    .select('*')
+    .eq('id', id)
+    .single()
+
+  if (error) throw error
+
+  return data
+}
+
+type StockMovementData = {
+  wine_id: number
+  quantity: number
+  type: 'entry' | 'out'
+  notes?: string
+}
+
+export async function createStockMovement(
+  data: StockMovementData,
+  adminId: number
+) {
+  const supabase = await createClient()
+
+  try {
+    // Start a transaction
+    const { data: currentWine, error: wineError } = await supabase
+      .from('wines')
+      .select('stock')
+      .eq('id', data.wine_id)
+      .single()
+
+    if (wineError) throw new Error(wineError.message)
+
+    const currentStock = currentWine.stock || 0
+    const stockChange = data.type === 'entry' ? data.quantity : -data.quantity
+
+    // Validate stock for outgoing movements
+    if (data.type === 'out' && currentStock < data.quantity) {
+      throw new Error('No hay suficiente stock disponible')
+    }
+
+    const newStock = currentStock + stockChange
+
+    // Update wine stock
+    const { error: updateError } = await supabase
+      .from('wines')
+      .update({
+        stock: newStock,
+        updated_at: new Date().toISOString(),
+        updated_by: adminId
+      })
+      .eq('id', data.wine_id)
+
+    if (updateError) throw new Error(updateError.message)
+
+    // Create stock movement record
+    const { error: movementError } = await supabase
+      .from('wine_stock_movements')
+      .insert({
+        ...data,
+        created_by: adminId,
+        created_at: new Date().toISOString()
+      })
+      .select()
+
+    if (movementError) throw new Error(movementError.message)
+
+    revalidateStoreTag('wines')
+
+    return { success: true }
+  } catch (error) {
+    console.error('Error managing stock:', error)
+    throw error
+  }
+}

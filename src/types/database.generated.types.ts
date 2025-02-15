@@ -702,6 +702,74 @@ export type Database = {
           }
         ]
       }
+      wine_stock_movements: {
+        Row: {
+          created_at: string
+          created_by: number | null
+          id: number
+          notes: string | null
+          order_id: string | null
+          quantity: number
+          type: Database['public']['Enums']['stock_movement_type']
+          updated_at: string
+          updated_by: number | null
+          wine_id: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: number | null
+          id?: number
+          notes?: string | null
+          order_id?: string | null
+          quantity: number
+          type: Database['public']['Enums']['stock_movement_type']
+          updated_at?: string
+          updated_by?: number | null
+          wine_id: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: number | null
+          id?: number
+          notes?: string | null
+          order_id?: string | null
+          quantity?: number
+          type?: Database['public']['Enums']['stock_movement_type']
+          updated_at?: string
+          updated_by?: number | null
+          wine_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'wine_stock_movements_created_by_fkey'
+            columns: ['created_by']
+            isOneToOne: false
+            referencedRelation: 'admin'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'wine_stock_movements_order_id_fkey'
+            columns: ['order_id']
+            isOneToOne: false
+            referencedRelation: 'orders'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'wine_stock_movements_updated_by_fkey'
+            columns: ['updated_by']
+            isOneToOne: false
+            referencedRelation: 'admin'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'wine_stock_movements_wine_id_fkey'
+            columns: ['wine_id']
+            isOneToOne: false
+            referencedRelation: 'wines'
+            referencedColumns: ['id']
+          }
+        ]
+      }
       wines: {
         Row: {
           cost_usd_blue: number
@@ -712,6 +780,7 @@ export type Database = {
           image: string | null
           name: string
           price: number
+          reserved_stock: number | null
           sold: number | null
           status: Database['public']['Enums']['wine_status']
           stock: number | null
@@ -731,6 +800,7 @@ export type Database = {
           image?: string | null
           name: string
           price: number
+          reserved_stock?: number | null
           sold?: number | null
           status?: Database['public']['Enums']['wine_status']
           stock?: number | null
@@ -750,6 +820,7 @@ export type Database = {
           image?: string | null
           name?: string
           price?: number
+          reserved_stock?: number | null
           sold?: number | null
           status?: Database['public']['Enums']['wine_status']
           stock?: number | null
@@ -806,6 +877,7 @@ export type Database = {
       payment_methods_status: 'draft' | 'active' | 'inactive' | 'deleted'
       payment_status: 'pending' | 'completed' | 'failed' | 'refunded'
       payment_type: 'cash_on_delivery' | 'bank_transfer'
+      stock_movement_type: 'entry' | 'out'
       tasting_status: 'draft' | 'active' | 'inactive' | 'deleted'
       wine_status: 'draft' | 'active' | 'inactive' | 'deleted'
     }

@@ -6,6 +6,7 @@ import {
   Building,
   CircleDollarSign,
   CircleHelp,
+  ClipboardList,
   CreditCard,
   Mail,
   PackageOpen,
@@ -56,6 +57,11 @@ const navMain = [
         icon: Wine,
         title: 'Vinos',
         url: '/vinos'
+      },
+      {
+        icon: ClipboardList,
+        title: 'Movimientos de Stock',
+        url: '/movimientos-de-stock'
       }
     ]
   },

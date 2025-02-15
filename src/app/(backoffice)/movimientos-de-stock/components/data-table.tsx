@@ -10,51 +10,41 @@ import {
   useReactTable,
   VisibilityState
 } from '@tanstack/react-table'
-import { toast } from 'sonner'
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 
-import { deleteWine } from '@/app/(backoffice)/vinos/actions'
-import {
-  ColumnsDefinition,
-  WineColumn
-} from '@/app/(backoffice)/vinos/components/columns'
-import { useCreateWine } from '@/app/(backoffice)/vinos/components/create-wine-context'
-import { DISABLED_COLUMNS, FILTERS } from '@/app/(backoffice)/vinos/constants'
-import { Wine } from '@/app/(backoffice)/vinos/types'
 import { TableContent } from '@/components/blocks/table/table-content'
 import { TableControls } from '@/components/blocks/table/table-controls'
 import { TablePagination } from '@/components/blocks/table/table-pagination'
 
-import { TableActionsDropdown } from './table-actions-dropdown'
+import { DEFAULT_ORDER, FILTERS } from '../constants'
+import type { WineStockMovement } from '../types'
+
+import type { ColumnsDefinition, StockMovementColumn } from './columns'
 
 interface DataTableProps {
   columns: ColumnsDefinition
-  data: Wine[]
+  data: WineStockMovement[]
   pageCount: number
   totalRecords: number
-  adminId: string
 }
 
 export function DataTable({
   columns,
   data,
   pageCount,
-  totalRecords,
-  adminId
+  totalRecords
 }: DataTableProps) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
-
-  const { handleOpenChange } = useCreateWine()
 
   const [sorting, setSorting] = useState<SortingState>(() => {
     const sortBy = searchParams.get('sortBy')
     const sortOrder = searchParams.get('sortOrder')
     return sortBy
       ? [{ id: sortBy, desc: sortOrder === 'desc' }]
-      : [{ id: 'year', desc: false }]
+      : [{ id: DEFAULT_ORDER.column, desc: !DEFAULT_ORDER.ascending }]
   })
 
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
@@ -64,22 +54,11 @@ export function DataTable({
       const columnsArray = columnsFromParams.split(',').filter(Boolean)
       const visibilityState: VisibilityState = {}
 
-      if (columnsArray.length > 0) {
-        columns.forEach((column: WineColumn) => {
-          const columnId = column.id ?? column.accessorKey ?? ''
-          visibilityState[columnId] = columnsArray.includes(columnId)
-        })
-      } else {
-        columns.forEach((column: WineColumn) => {
-          const columnId = column.id ?? column.accessorKey ?? ''
-          // Definimos las columnas que queremos ocultar por defecto
-          if (DISABLED_COLUMNS.includes(columnId)) {
-            visibilityState[columnId] = false
-          } else {
-            visibilityState[columnId] = true
-          }
-        })
-      }
+      columns.forEach((column: StockMovementColumn) => {
+        const columnId = column.id ?? ''
+        visibilityState[columnId] =
+          columnsArray.length === 0 || columnsArray.includes(columnId)
+      })
 
       return visibilityState
     }
@@ -109,42 +88,9 @@ export function DataTable({
     router.push(`${pathname}?${current.toString()}`, { scroll: false })
   }
 
-  const handleEdit = (id: string | number) => {
-    handleOpenChange(true, String(id))
-  }
-
-  const handleDelete = async (id: string | number) => {
-    try {
-      await deleteWine(Number(id), Number(adminId))
-      toast.success('Wine deleted successfully')
-      router.refresh()
-    } catch (error) {
-      console.error('Error:', error)
-      toast.error('Error deleting the wine')
-    }
-  }
-
   const table = useReactTable({
     data,
-    columns: columns.map((column: WineColumn) => {
-      if (column.id === 'actions') {
-        return {
-          ...column,
-          cell: ({ row }) => {
-            const wine = row.original as Wine
-            return (
-              <TableActionsDropdown
-                id={wine.id}
-                adminId={Number(adminId)}
-                onEdit={() => handleEdit(wine.id)}
-                onDelete={handleDelete}
-              />
-            )
-          }
-        }
-      }
-      return column
-    }),
+    columns,
     pageCount,
     getCoreRowModel: getCoreRowModel(),
     manualPagination: true,
@@ -167,10 +113,8 @@ export function DataTable({
 
   return (
     <div className="flex h-full flex-col">
-      <TableControls<Wine> table={table} filters={FILTERS} />
-
+      <TableControls table={table} filters={FILTERS} />
       <TableContent table={table} />
-
       <TablePagination pageCount={pageCount} totalRecords={totalRecords} />
     </div>
   )

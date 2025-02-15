@@ -4,17 +4,17 @@ INSERT INTO admin (name, surname, email) VALUES
 ('Admin', 'User', 'francolorenzo@biamex.com');
 
 -- Seed data for the wines table
-INSERT INTO wines (name, description, winery, year, variety, volume_ml, price, cost_usd_blue, status, created_by, stock) VALUES
-('Malbec Reserva', 'Un Malbec intenso y aromático con notas de frutas rojas y especias', 'Bodega del Valle', 2018, 'Malbec', 750, 2500.00, 12.50, 'active', 1, 100),
-('Chardonnay Premium', 'Chardonnay fresco y frutado con toques de vainilla y roble', 'Viñas del Sur', 2020, 'Chardonnay', 750, 1800.00, 9.00, 'active', 1, 150),
-('Cabernet Sauvignon Gran Reserva', 'Cabernet Sauvignon de gran cuerpo con taninos maduros y final prolongado', 'Altos Andes', 2017, 'Cabernet Sauvignon', 750, 3200.00, 16.00, 'active', 1, 200),
-('Torrontés Clásico', 'Torrontés aromático y floral con notas de durazno y jazmín', 'Valles Calchaquíes', 2021, 'Torrontés', 750, 1500.00, 7.50, 'active', 1, 120),
-('Blend Reserva', 'Blend elegante de Malbec, Cabernet y Merlot con complejidad y estructura', 'Finca La Esperanza', 2019, 'Blend', 750, 2800.00, 14.00, 'active', 1, 130),
-('Pinot Noir Elegance', 'Pinot Noir suave y elegante con aromas a frutos rojos y un toque de tierra', 'Viñedos del Este', 2019, 'Pinot Noir', 750, 2200.00, 11.00, 'active', 1, 140),
-('Sauvignon Blanc Fresco', 'Sauvignon Blanc con notas cítricas y herbáceas, fresco y vibrante', 'Bodegas del Litoral', 2021, 'Sauvignon Blanc', 750, 1600.00, 8.00, 'active', 1, 110),
-('Merlot Suave', 'Merlot de cuerpo medio y taninos suaves con sabores a ciruela y chocolate', 'Viñas del Oeste', 2018, 'Merlot', 750, 2000.00, 10.00, 'active', 1, 90),
-('Bonarda Clásica', 'Bonarda frutada y de cuerpo medio con notas de cereza y especias', 'Bodega Tradicional', 2020, 'Bonarda', 750, 1900.00, 9.50, 'active', 1, 80),
-('Syrah Intenso', 'Syrah de gran intensidad y complejidad con notas de pimienta y frutos negros', 'Finca del Norte', 2017, 'Syrah', 750, 2700.00, 13.50, 'active', 1, 70);
+INSERT INTO wines (name, description, winery, year, variety, volume_ml, price, cost_usd_blue, status, created_by, stock, reserved_stock) VALUES
+('Malbec Reserva', 'Un Malbec intenso y aromático con notas de frutas rojas y especias', 'Bodega del Valle', 2018, 'Malbec', 750, 2500.00, 12.50, 'active', 1, 100, 0),
+('Chardonnay Premium', 'Chardonnay fresco y frutado con toques de vainilla y roble', 'Viñas del Sur', 2020, 'Chardonnay', 750, 1800.00, 9.00, 'active', 1, 150, 0),
+('Cabernet Sauvignon Gran Reserva', 'Cabernet Sauvignon de gran cuerpo con taninos maduros y final prolongado', 'Altos Andes', 2017, 'Cabernet Sauvignon', 750, 3200.00, 16.00, 'active', 1, 200, 0),
+('Torrontés Clásico', 'Torrontés aromático y floral con notas de durazno y jazmín', 'Valles Calchaquíes', 2021, 'Torrontés', 750, 1500.00, 7.50, 'active', 1, 120, 0),
+('Blend Reserva', 'Blend elegante de Malbec, Cabernet y Merlot con complejidad y estructura', 'Finca La Esperanza', 2019, 'Blend', 750, 2800.00, 14.00, 'active', 1, 130, 0),
+('Pinot Noir Elegance', 'Pinot Noir suave y elegante con aromas a frutos rojos y un toque de tierra', 'Viñedos del Este', 2019, 'Pinot Noir', 750, 2200.00, 11.00, 'active', 1, 140, 0),
+('Sauvignon Blanc Fresco', 'Sauvignon Blanc con notas cítricas y herbáceas, fresco y vibrante', 'Bodegas del Litoral', 2021, 'Sauvignon Blanc', 750, 1600.00, 8.00, 'active', 1, 110, 0),
+('Merlot Suave', 'Merlot de cuerpo medio y taninos suaves con sabores a ciruela y chocolate', 'Viñas del Oeste', 2018, 'Merlot', 750, 2000.00, 10.00, 'active', 1, 90, 0),
+('Bonarda Clásica', 'Bonarda frutada y de cuerpo medio con notas de cereza y especias', 'Bodega Tradicional', 2020, 'Bonarda', 750, 1900.00, 9.50, 'active', 1, 80, 0),
+('Syrah Intenso', 'Syrah de gran intensidad y complejidad con notas de pimienta y frutos negros', 'Finca del Norte', 2017, 'Syrah', 750, 2700.00, 13.50, 'active', 1, 70, 0);
 
 -- Seed data for the tastings table
 INSERT INTO tastings (name, slug, short_description, long_description, pairings, price, status, created_by, stock) VALUES
@@ -133,3 +133,26 @@ INSERT INTO settings (key, value, description) VALUES
 ('bank_account_alias', 'banco.ejemplo', 'Alias del CBU de la cuenta bancaria'),
 ('contact_email', 'franco14lorenzo@gmail.com', 'Correo electrónico de contacto'),
 ('contact_phone_number', '5492615040179', 'Número de teléfono de contacto');
+
+-- Seed data for wine_stock_movements table
+INSERT INTO wine_stock_movements (wine_id, quantity, type, order_id, notes, created_by) VALUES
+-- Movimientos para el pedido de Franco Armani
+(1, 2, 'out', '550e8400-e29b-41d4-a716-446655440005', 'Reserva para degustación Malbec', 1),
+(5, 2, 'out', '550e8400-e29b-41d4-a716-446655440005', 'Reserva para degustación Malbec', 1),
+(8, 2, 'out', '550e8400-e29b-41d4-a716-446655440005', 'Reserva para degustación Malbec', 1),
+(3, 2, 'out', '550e8400-e29b-41d4-a716-446655440005', 'Reserva para degustación Malbec', 1),
+
+-- Movimientos para el pedido de Enzo Perez
+(1, 1, 'out', '550e8400-e29b-41d4-a716-446655440006', 'Reserva para degustación Standard', 1),
+(2, 1, 'out', '550e8400-e29b-41d4-a716-446655440006', 'Reserva para degustación Standard', 1),
+(3, 1, 'out', '550e8400-e29b-41d4-a716-446655440006', 'Reserva para degustación Standard', 1),
+(4, 1, 'out', '550e8400-e29b-41d4-a716-446655440006', 'Reserva para degustación Standard', 1),
+
+-- Algunos ejemplos de entradas de stock
+(1, 50, 'entry', NULL, 'Reposición de stock Malbec Reserva', 1),
+(2, 30, 'entry', NULL, 'Reposición de stock Chardonnay Premium', 1),
+(3, 40, 'entry', NULL, 'Reposición de stock Cabernet Sauvignon', 1),
+(4, 25, 'entry', NULL, 'Reposición de stock Torrontés', 1);
+
+-- Set sequence for wine_stock_movements
+SELECT setval(pg_get_serial_sequence('public.wine_stock_movements', 'id'), coalesce(max(id), 1) + 1, false) FROM public.wine_stock_movements;
