@@ -14,6 +14,7 @@ export type Wine = {
   created_at: string
   updated_at: string
   stock?: number
+  reserved_stock?: number
   image?: string
   sold?: number
 }
