@@ -41,7 +41,6 @@ export function Filters() {
 
     setStatusFilter(newStatusFilter)
 
-    // Actualizar URL
     const current = new URLSearchParams(Array.from(searchParams.entries()))
     if (newStatusFilter.length > 0) {
       current.set('status', newStatusFilter.join(','))

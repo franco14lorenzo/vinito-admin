@@ -163,7 +163,6 @@ export async function createStockMovement(
   const supabase = await createClient()
 
   try {
-    // Start a transaction
     const { data: currentWine, error: wineError } = await supabase
       .from('wines')
       .select('stock')
@@ -175,14 +174,12 @@ export async function createStockMovement(
     const currentStock = currentWine.stock || 0
     const stockChange = data.type === 'entry' ? data.quantity : -data.quantity
 
-    // Validate stock for outgoing movements
     if (data.type === 'out' && currentStock < data.quantity) {
       throw new Error('No hay suficiente stock disponible')
     }
 
     const newStock = currentStock + stockChange
 
-    // Update wine stock
     const { error: updateError } = await supabase
       .from('wines')
       .update({
@@ -194,7 +191,6 @@ export async function createStockMovement(
 
     if (updateError) throw new Error(updateError.message)
 
-    // Create stock movement record
     const { error: movementError } = await supabase
       .from('wine_stock_movements')
       .insert({

@@ -271,7 +271,6 @@ export async function updateTastingStock(
   const supabase = await createClient()
 
   try {
-    // Start a transaction
     const { data: tasting, error: tastingError } = await supabase
       .from('tastings')
       .select(
@@ -294,13 +293,10 @@ export async function updateTastingStock(
     const currentStock = tasting.stock || 0
     const stockDifference = newStock - currentStock
 
-    // If there's no change in stock, return early
     if (stockDifference === 0) return { success: true }
 
-    // For each wine in the tasting, update its reserved stock and create a movement
     for (const { wine } of tasting.tasting_wines) {
       if (!wine) continue
-      // Update wine's reserved stock
       const { error: updateWineError } = await supabase
         .from('wines')
         .update({
@@ -313,7 +309,6 @@ export async function updateTastingStock(
       if (updateWineError) throw new Error(updateWineError.message)
     }
 
-    // Update tasting stock
     const { error: updateTastingError } = await supabase
       .from('tastings')
       .update({

@@ -72,7 +72,7 @@ export function DataTable({
       } else {
         columns.forEach((column: WineColumn) => {
           const columnId = column.id ?? column.accessorKey ?? ''
-          // Definimos las columnas que queremos ocultar por defecto
+
           if (DISABLED_COLUMNS.includes(columnId)) {
             visibilityState[columnId] = false
           } else {
