@@ -98,7 +98,9 @@ export function StockMovementForm({
       router.refresh()
       onSuccess?.()
     } catch (error) {
-      toast.error('Error al crear el movimiento de stock')
+      const errorMessage =
+        error instanceof Error ? error.message : 'Error desconocido'
+      toast.error(`Error al crear el movimiento de stock. ${errorMessage}`)
     } finally {
       setLoading(false)
     }

@@ -1,6 +1,7 @@
 import { AlertCircle, CheckCircle2, Clock } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
+import { cn } from '@/lib/utils'
 
 const statusConfig = {
   active: {
@@ -20,7 +21,13 @@ const statusConfig = {
   }
 }
 
-export function StatusBadge({ status }: { status: keyof typeof statusConfig }) {
+export function StatusBadge({
+  status,
+  className
+}: {
+  status: keyof typeof statusConfig
+  className?: string
+}) {
   const config = statusConfig[status]
   if (!config) return null
   const Icon = config.icon
@@ -30,7 +37,7 @@ export function StatusBadge({ status }: { status: keyof typeof statusConfig }) {
       variant={
         config.variant as 'success' | 'warning' | 'secondary' | 'destructive'
       }
-      className="gap-1"
+      className={cn('flex w-fit items-center gap-1', className)}
     >
       <Icon className="h-4 w-4" />
       {config.label}
