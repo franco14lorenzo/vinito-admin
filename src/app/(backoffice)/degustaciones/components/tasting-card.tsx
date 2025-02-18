@@ -10,8 +10,10 @@ import {
   UsersIcon,
   WineIcon
 } from 'lucide-react'
+import { toast } from 'sonner'
 
 import Image from 'next/image'
+import { useRouter } from 'next/navigation'
 
 import { StatusBadge } from '@/components/status-badge'
 import {
@@ -24,12 +26,21 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from '@/components/ui/dialog'
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 
+import { deleteTasting } from '../actions'
 import { Tasting } from '../types'
 
 import { useCreateTasting } from './create-tasting-context'
@@ -42,8 +53,26 @@ export function TastingCard({
   tasting: Tasting
   adminId: number
 }) {
+  const router = useRouter()
   const { handleOpenChange } = useCreateTasting()
   const [stockSheetOpen, setStockSheetOpen] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+
+  const handleDelete = async () => {
+    try {
+      setIsDeleting(true)
+      await deleteTasting(tasting.id, adminId)
+      toast.success('Degustación eliminada')
+      router.refresh()
+    } catch (error) {
+      toast.error('Error eliminando la degustación')
+      console.error('Error deleting Tasting:', error)
+    } finally {
+      setIsDeleting(false)
+      setShowDeleteDialog(false)
+    }
+  }
 
   return (
     <Card className="flex flex-col shadow-none">
@@ -123,6 +152,7 @@ export function TastingCard({
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => setStockSheetOpen(true)}>
+                  <Package2Icon className="h-4 w-4" />
                   Editar stock
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -236,7 +266,11 @@ export function TastingCard({
       </CardContent>
 
       <CardFooter className="mt-auto flex justify-between gap-2">
-        <Button variant="destructive">
+        <Button
+          variant="destructive"
+          onClick={() => setShowDeleteDialog(true)}
+          disabled={isDeleting}
+        >
           <Trash2 className="h-4 w-4" />
           Eliminar
         </Button>
@@ -248,6 +282,33 @@ export function TastingCard({
           Editar
         </Button>
       </CardFooter>
+
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>¿Estás seguro?</DialogTitle>
+            <DialogDescription>
+              Esta acción eliminará la degustación permanentemente.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="secondary"
+              onClick={() => setShowDeleteDialog(false)}
+              className="mr-2"
+            >
+              Cancelar
+            </Button>
+            <Button
+              className="bg-red-500 hover:bg-red-600"
+              onClick={handleDelete}
+              disabled={isDeleting}
+            >
+              {isDeleting ? 'Eliminando...' : 'Eliminar'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   )
 }

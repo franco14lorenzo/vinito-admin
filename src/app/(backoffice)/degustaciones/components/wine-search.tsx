@@ -42,7 +42,6 @@ export function WineSearch({ selectedWines, onWineSelect }: WineSearchProps) {
   const debouncedQuery = useDebounce(query, 300)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  // Mantener el foco cuando cambian los resultados
   useEffect(() => {
     const input = inputRef.current
     if (input) {
@@ -77,14 +76,13 @@ export function WineSearch({ selectedWines, onWineSelect }: WineSearchProps) {
   const handleSelect = (wine: Wine) => {
     if (!selectedWines.some((w) => w.id === wine.id)) {
       onWineSelect(wine)
-      // Limpiar tanto el query como los resultados
       setQuery('')
       setSearchResults([])
     }
   }
 
   return (
-    <Command className="rounded-lg border shadow-sm">
+    <Command className="rounded-lg border">
       <CommandInput
         ref={inputRef}
         placeholder="Buscar vinos..."
@@ -101,7 +99,7 @@ export function WineSearch({ selectedWines, onWineSelect }: WineSearchProps) {
           </CommandEmpty>
         )}
         {searchResults.length > 0 && (
-          <CommandGroup>
+          <CommandGroup heading="Resultados de búsqueda:" className="">
             <ScrollArea className="max-h-52">
               {searchResults.map((wine) => {
                 const isSelected = selectedWines.some((w) => w.id === wine.id)
@@ -110,7 +108,7 @@ export function WineSearch({ selectedWines, onWineSelect }: WineSearchProps) {
                     key={wine.id}
                     value={wine.name}
                     onSelect={() => handleSelect(wine)}
-                    className="gap-2"
+                    className={cn('gap-2', isSelected && 'bg-muted/50')}
                   >
                     {wine.image ? (
                       <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-md">
@@ -153,7 +151,7 @@ export function WineSearch({ selectedWines, onWineSelect }: WineSearchProps) {
                     <Check
                       className={cn(
                         'h-4 w-4 shrink-0',
-                        isSelected ? 'opacity-100' : 'opacity-0'
+                        isSelected ? 'text-primary opacity-100' : 'opacity-0'
                       )}
                     />
                   </CommandItem>

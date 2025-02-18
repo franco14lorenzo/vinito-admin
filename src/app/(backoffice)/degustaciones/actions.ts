@@ -155,10 +155,50 @@ export async function deleteTasting(id: number, adminId: number) {
   const supabase = await createClient()
 
   try {
+    const { data: tasting, error: fetchError } = await supabase
+      .from('tastings')
+      .select(
+        `
+        *,
+        tasting_wines (
+          wine_id,
+          wine:wines (
+            id,
+            reserved_stock
+          )
+        )
+      `
+      )
+      .eq('id', id)
+      .single()
+
+    if (fetchError) throw new Error(fetchError.message)
+
+    const currentStock = tasting.stock || 0
+
+    for (const { wine } of tasting.tasting_wines) {
+      if (!wine) continue
+
+      const { error: updateWineError } = await supabase
+        .from('wines')
+        .update({
+          reserved_stock: Math.max(
+            0,
+            (wine.reserved_stock || 0) - currentStock
+          ),
+          updated_at: new Date().toISOString(),
+          updated_by: adminId
+        })
+        .eq('id', wine.id)
+
+      if (updateWineError) throw new Error(updateWineError.message)
+    }
+
     const { error } = await supabase
       .from('tastings')
       .update({
         status: 'deleted',
+        stock: 0,
         updated_by: adminId,
         updated_at: new Date().toISOString()
       })
@@ -207,6 +247,7 @@ export async function searchWines(query: string) {
       .select(
         'id, name, winery, variety, year, image, stock, reserved_stock, cost_usd_blue'
       )
+      .eq('status', 'active')
       .or(
         `name.ilike.%${query}%, variety.ilike.%${query}%, winery.ilike.%${query}%`
       )

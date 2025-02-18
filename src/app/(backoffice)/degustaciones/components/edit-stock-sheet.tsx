@@ -61,23 +61,23 @@ export function EditStockSheet({
     inputRef.current?.select()
   }
 
-  // Calculate minimum available stock from wines
   const minAvailableStock =
     tasting?.tasting_wines?.reduce((min, { wine }) => {
       const availableStock = (wine.stock || 0) - (wine.reserved_stock || 0)
       return Math.min(min, availableStock)
     }, Infinity) || 0
 
+  const maxPossibleStock = currentStock + minAvailableStock
+
   const form = useForm<FormValues>({
     defaultValues: {
       stock: currentStock
     },
-    // Add validation to prevent setting stock higher than minimum available
     resolver: (values) => {
       const errors: Record<string, { message: string }> = {}
-      if (values.stock > minAvailableStock) {
+      if (values.stock > maxPossibleStock) {
         errors.stock = {
-          message: `El stock no puede ser mayor a ${minAvailableStock} unidades (limitado por el stock disponible de los vinos)`
+          message: `El stock no puede ser mayor a ${maxPossibleStock} unidades (limitado por el stock actual + disponible de los vinos)`
         }
       }
       return {
@@ -119,7 +119,7 @@ export function EditStockSheet({
   }
 
   function setMaxStock() {
-    form.setValue('stock', minAvailableStock)
+    form.setValue('stock', maxPossibleStock)
   }
 
   return (
@@ -262,7 +262,8 @@ export function EditStockSheet({
                         <p className="p-2 text-sm text-muted-foreground">
                           <BadgeAlert className="-mt-0.5 mr-1 inline-block h-4 w-4" />
                           El stock máximo de la degustación está limitado por el
-                          vino con menor stock disponible.
+                          stock actual de la degustación y el stock minimo
+                          disponible de los vinos incluidos.
                         </p>
                       </div>
 
@@ -283,7 +284,7 @@ export function EditStockSheet({
                                   className="h-7 gap-1.5"
                                 >
                                   <Zap className="h-3 w-3" />
-                                  Usar máximo ({minAvailableStock})
+                                  Usar máximo ({maxPossibleStock})
                                 </Button>
                               </div>
                               <FormControl>
@@ -296,7 +297,7 @@ export function EditStockSheet({
                                       field.ref(e)
                                       inputRef.current = e
                                     }}
-                                    max={minAvailableStock}
+                                    max={maxPossibleStock}
                                     min={0}
                                     value={
                                       field.value === 0 ? '0' : field.value
@@ -310,7 +311,7 @@ export function EditStockSheet({
                                     }}
                                   />
                                   <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
-                                    / {minAvailableStock} un.
+                                    / {maxPossibleStock} un.
                                   </div>
                                 </div>
                               </FormControl>
@@ -329,7 +330,7 @@ export function EditStockSheet({
                         type="submit"
                         disabled={
                           isLoading ||
-                          minAvailableStock === 0 ||
+                          form.watch('stock') > maxPossibleStock ||
                           form.watch('stock') === currentStock
                         }
                       >

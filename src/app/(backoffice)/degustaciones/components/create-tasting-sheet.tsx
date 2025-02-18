@@ -20,6 +20,7 @@ import {
 } from '@/app/(backoffice)/degustaciones/actions'
 import { useCreateTasting } from '@/app/(backoffice)/degustaciones/components/create-tasting-context'
 import { StatusBadge } from '@/components/status-badge'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   Form,
@@ -118,7 +119,6 @@ export function CreateTastingSheet({ adminId }: CreateTastingSheetProps) {
             return
           }
 
-          // Extraer los vinos de tasting_wines y configurar selectedWines
           const wines = data.tasting_wines
             .map((tw) => tw.wine)
             .filter(
@@ -285,17 +285,14 @@ export function CreateTastingSheet({ adminId }: CreateTastingSheetProps) {
                     name="wine_ids"
                     render={({ field }) => (
                       <FormItem className="flex flex-col gap-2">
-                        <FormLabel>Vinos</FormLabel>
+                        <FormLabel>
+                          Vinos{' '}
+                          <Badge variant="secondary">
+                            {selectedWines.length}
+                          </Badge>
+                        </FormLabel>
                         <div className="flex flex-col gap-4">
                           <div className="grid grid-cols-1 gap-2">
-                            <WineSearch
-                              selectedWines={selectedWines}
-                              onWineSelect={(wine: Wine) => {
-                                const newSelection = [...selectedWines, wine]
-                                setSelectedWines(newSelection)
-                                field.onChange(newSelection.map((w) => w.id))
-                              }}
-                            />
                             {selectedWines.map((wine) => (
                               <div
                                 key={wine.id}
@@ -366,6 +363,15 @@ export function CreateTastingSheet({ adminId }: CreateTastingSheetProps) {
                                 </Button>
                               </div>
                             ))}
+
+                            <WineSearch
+                              selectedWines={selectedWines}
+                              onWineSelect={(wine: Wine) => {
+                                const newSelection = [...selectedWines, wine]
+                                setSelectedWines(newSelection)
+                                field.onChange(newSelection.map((w) => w.id))
+                              }}
+                            />
                           </div>
                         </div>
                         <FormMessage />
