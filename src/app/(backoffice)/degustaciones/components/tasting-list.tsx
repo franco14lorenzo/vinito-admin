@@ -28,9 +28,7 @@ export function TastingList({ tastings, adminId }: TastingListProps) {
     <div className="min-h-[calc(100vh-80px)] rounded-2xl bg-gray-50 p-6">
       <div className="grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] gap-6">
         {filteredTastings.map((tasting) => (
-          <div key={tasting.id} className="h-fit">
-            <TastingCard tasting={tasting} adminId={adminId} />
-          </div>
+          <TastingCard key={tasting.id} tasting={tasting} adminId={adminId} />
         ))}
       </div>
     </div>

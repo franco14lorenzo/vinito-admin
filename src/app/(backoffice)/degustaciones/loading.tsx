@@ -8,7 +8,7 @@ import {
   TableRow
 } from '@/components/ui/table'
 
-export default function LoadingFAQs() {
+export default function LoadingTastings() {
   return (
     <div className="container mx-auto py-10">
       <h2 className="mb-5 text-2xl font-bold tracking-tight">
