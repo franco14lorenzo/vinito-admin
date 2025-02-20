@@ -6,6 +6,11 @@ import { ChevronDown, Columns3, PlusCircle } from 'lucide-react'
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 
+import {
+  PAYMENTS_STATUS_LABELS,
+  STATUS_VARIANTS
+} from '@/app/(backoffice)/pagos/constants'
+import { PaymentStatus } from '@/app/(backoffice)/pagos/types'
 import { StatusBadge } from '@/components/status-badge'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -20,6 +25,7 @@ import { Input } from '@/components/ui/input'
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 
 interface FilterType {
+  table?: string
   id: string
   label: string
   options: Array<{
@@ -216,6 +222,23 @@ export function TableControls<TData>({
                             )
                           }
 
+                          if (filter?.table === 'payments') {
+                            return (
+                              <Badge
+                                key={filterValue}
+                                variant={
+                                  STATUS_VARIANTS[filterValue as PaymentStatus]
+                                }
+                              >
+                                {
+                                  PAYMENTS_STATUS_LABELS.find(
+                                    (status) => status.value === filterValue
+                                  )?.label
+                                }
+                              </Badge>
+                            )
+                          }
+
                           if (filter.id === 'status') {
                             return (
                               <StatusBadge
@@ -269,7 +292,19 @@ export function TableControls<TData>({
                         }
                         className="mr-0.5"
                       />
-                      {renderFilterBadge ? (
+                      {filter?.table === 'payments' ? ( // TODO: extend component to support other tables
+                        <Badge
+                          variant={
+                            STATUS_VARIANTS[option.value as PaymentStatus]
+                          }
+                        >
+                          {
+                            PAYMENTS_STATUS_LABELS.find(
+                              (status) => status.value === option.value
+                            )?.label
+                          }
+                        </Badge>
+                      ) : renderFilterBadge ? (
                         renderFilterBadge(option.value)
                       ) : (
                         <span className={option.className}>{option.label}</span>
