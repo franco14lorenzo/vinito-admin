@@ -31,8 +31,8 @@ export const SORTABLE_COLUMNS = {
 }
 
 export const DEFAULT_ORDER = {
-  column: 'delivery_date',
-  ascending: true
+  column: 'created_at',
+  ascending: false
 }
 
 export const STATUS_FILTERS = [
