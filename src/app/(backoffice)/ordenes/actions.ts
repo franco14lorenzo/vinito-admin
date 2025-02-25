@@ -121,7 +121,6 @@ type TastingWithWines = {
   }
 }
 
-// Obtener las degustaciones de una orden con sus vinos
 async function getOrderTastings(orderId: string) {
   const supabase = await createClient()
 
@@ -157,7 +156,6 @@ async function getOrderTastings(orderId: string) {
   }
 }
 
-// Actualizar el stock y sold de una degustación
 async function updateTastingStock(
   tastingId: number,
   stockChange: number,
@@ -184,18 +182,19 @@ async function updateTastingStock(
   }
 }
 
-// Actualizar el stock, reserved_stock y sold de un vino
 async function updateWineStock(
   wineId: number,
   stockChange: number,
   reservedStockChange: number,
   soldChange: number,
-  adminId: number
+  adminId: number,
+  orderId?: string,
+  stockToReturn?: number
 ) {
   const supabase = await createClient()
 
   try {
-    const { error } = await supabase
+    const { error: updateError } = await supabase
       .from('wines')
       .update({
         stock: stockChange,
@@ -206,14 +205,27 @@ async function updateWineStock(
       })
       .eq('id', wineId)
 
-    if (error) throw new Error(error.message)
+    if (updateError) throw new Error(updateError.message)
+
+    const { error: movementError } = await supabase
+      .from('wine_stock_movements')
+      .insert({
+        wine_id: wineId,
+        quantity: stockToReturn || 0,
+        type: 'entry',
+        order_id: orderId,
+        created_by: adminId,
+        updated_by: adminId,
+        notes: orderId ? 'Movimiento por cancelación de orden' : undefined
+      })
+
+    if (movementError) throw new Error(movementError.message)
   } catch (error) {
     console.error('Error updating wine stock:', error)
     throw error
   }
 }
 
-// Obtener el pago completo de una orden
 async function getOrderPaymentDetails(orderId: string) {
   const supabase = await createClient()
 
@@ -233,7 +245,6 @@ async function getOrderPaymentDetails(orderId: string) {
   }
 }
 
-// Actualizar el estado de la orden y manejar el stock
 export async function cancelOrder(
   id: string,
   adminId: number,
@@ -242,7 +253,6 @@ export async function cancelOrder(
   const supabase = await createClient()
 
   try {
-    // Verificar y manejar el pago
     const payment = await getOrderPaymentDetails(id)
     if (payment && payment.status === 'completed' && !shouldRefundPayment) {
       return {
@@ -254,16 +264,13 @@ export async function cancelOrder(
       }
     }
 
-    // Obtener las degustaciones de la orden
     const orderTastings = await getOrderTastings(id)
 
-    // Iniciar una transacción para todas las actualizaciones
     for (const orderTasting of orderTastings) {
       const { quantity, tasting } = orderTasting
 
       if (!tasting) continue
 
-      // Actualizar el stock y sold de la degustación
       const newTastingStock = tasting.stock + quantity
       const newTastingSold = (tasting.sold || 0) - quantity
       await updateTastingStock(
@@ -273,15 +280,12 @@ export async function cancelOrder(
         adminId
       )
 
-      // Actualizar el stock de los vinos asociados
       if (tasting.wines) {
         for (const tastingWine of tasting.wines) {
           const { wine } = tastingWine
           if (!wine) continue
 
-          // Como cada degustación usa 1 unidad de cada vino,
-          // multiplicamos por la cantidad de degustaciones
-          const stockToReturn = quantity // quantity es la cantidad de degustaciones
+          const stockToReturn = quantity
           const newWineStock = wine.stock + stockToReturn
           const newReservedStock = wine.reserved_stock + stockToReturn
           const newWineSold = (wine.sold || 0) - stockToReturn
@@ -291,18 +295,18 @@ export async function cancelOrder(
             newWineStock,
             newReservedStock,
             newWineSold,
-            adminId
+            adminId,
+            id,
+            stockToReturn
           )
         }
       }
     }
 
-    // Si hay un pago completado y se confirmó el reembolso, actualizarlo
     if (payment && payment.status === 'completed' && shouldRefundPayment) {
       await updatePaymentStatus(id, 'refunded', adminId)
     }
 
-    // Actualizar el estado de la orden
     const { error } = await supabase
       .from('orders')
       .update({
