@@ -9,12 +9,17 @@ import { FiltersProvider } from './components/filters-context'
 import { TastingList } from './components/tasting-list'
 import { Tasting } from './types'
 
-export default async function TastingsPage() {
+export default async function TastingsPage({
+  searchParams
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}) {
+  const search = (await searchParams).search as string
   const tastings = await getTastings()
   const session = await auth()
 
   return (
-    <FiltersProvider>
+    <FiltersProvider search={search}>
       <CreateTastingProvider>
         <div className="flex h-[calc(100dvh-80px)] w-full flex-col gap-2 p-4">
           <div className="flex-none space-y-6">

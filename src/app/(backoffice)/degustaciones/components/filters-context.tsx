@@ -14,8 +14,15 @@ interface FiltersContextType {
 
 const FiltersContext = createContext<FiltersContextType | undefined>(undefined)
 
-export function FiltersProvider({ children }: { children: React.ReactNode }) {
-  const [searchTerm, setSearchTerm] = useState('')
+export function FiltersProvider({
+  children,
+  search
+}: {
+  children: React.ReactNode
+  search?: string
+}) {
+  const [searchTerm, setSearchTerm] = useState(search || '')
+
   const [statusFilter, setStatusFilter] = useState<TastingStatus[]>(
     FILTERS[0].defaultSelected as TastingStatus[]
   )

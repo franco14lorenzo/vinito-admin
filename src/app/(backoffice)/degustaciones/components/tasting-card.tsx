@@ -75,7 +75,7 @@ export function TastingCard({
   }
 
   return (
-    <Card className="flex h-fit flex-col shadow-none">
+    <Card className="flex h-fit max-w-[640px] flex-col shadow-none">
       <CardHeader className="pb-6">
         <div className="relative space-y-1">
           <h3 className="line-clamp-2 text-xl font-semibold tracking-tight">

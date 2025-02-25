@@ -7,12 +7,16 @@ import { ChevronDown, Columns3, PlusCircle } from 'lucide-react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 
 import {
-  PAYMENTS_STATUS_LABELS,
+  STATUS_FILTERS as ORDER_STATUS_LABELS,
   STATUS_VARIANTS
+} from '@/app/(backoffice)/ordenes/constants'
+import {
+  PAYMENTS_STATUS_LABELS,
+  STATUS_VARIANTS as PAYMENTS_STATUS_VARIANTS
 } from '@/app/(backoffice)/pagos/constants'
 import { PaymentStatus } from '@/app/(backoffice)/pagos/types'
 import { StatusBadge } from '@/components/status-badge'
-import { Badge } from '@/components/ui/badge'
+import { Badge, BadgeProps } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
@@ -227,11 +231,32 @@ export function TableControls<TData>({
                               <Badge
                                 key={filterValue}
                                 variant={
-                                  STATUS_VARIANTS[filterValue as PaymentStatus]
+                                  PAYMENTS_STATUS_VARIANTS[
+                                    filterValue as PaymentStatus
+                                  ]
                                 }
                               >
                                 {
                                   PAYMENTS_STATUS_LABELS.find(
+                                    (status) => status.value === filterValue
+                                  )?.label
+                                }
+                              </Badge>
+                            )
+                          }
+
+                          if (filter?.table === 'orders') {
+                            return (
+                              <Badge
+                                key={filterValue}
+                                variant={
+                                  STATUS_VARIANTS[
+                                    filterValue as keyof typeof STATUS_VARIANTS
+                                  ] as BadgeProps['variant']
+                                }
+                              >
+                                {
+                                  ORDER_STATUS_LABELS.find(
                                     (status) => status.value === filterValue
                                   )?.label
                                 }
@@ -292,14 +317,30 @@ export function TableControls<TData>({
                         }
                         className="mr-0.5"
                       />
-                      {filter?.table === 'payments' ? ( // TODO: extend component to support other tables
+                      {filter?.table === 'payments' ? (
                         <Badge
                           variant={
-                            STATUS_VARIANTS[option.value as PaymentStatus]
+                            PAYMENTS_STATUS_VARIANTS[
+                              option.value as PaymentStatus
+                            ]
                           }
                         >
                           {
                             PAYMENTS_STATUS_LABELS.find(
+                              (status) => status.value === option.value
+                            )?.label
+                          }
+                        </Badge>
+                      ) : filter?.table === 'orders' ? (
+                        <Badge
+                          variant={
+                            STATUS_VARIANTS[
+                              option.value as keyof typeof STATUS_VARIANTS
+                            ] as BadgeProps['variant']
+                          }
+                        >
+                          {
+                            ORDER_STATUS_LABELS.find(
                               (status) => status.value === option.value
                             )?.label
                           }

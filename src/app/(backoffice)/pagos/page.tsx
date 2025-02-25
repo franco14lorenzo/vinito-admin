@@ -112,7 +112,13 @@ async function getPayments(params: PaymentParams = {}) {
   })
 
   if (params.search) {
-    query = query.textSearch('order_id', params.search)
+    const searchTerm = params.search.trim()
+
+    const isNumber = /^\d+$/.test(searchTerm)
+
+    if (isNumber) {
+      query = query.eq('id', parseInt(searchTerm))
+    }
   }
 
   if (filters.status) {

@@ -2,8 +2,11 @@
 
 import { ColumnDef } from '@tanstack/react-table'
 
+import Link from 'next/link'
+
 import SortableHeader from '@/components/blocks/table/sorteable-header-table'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { formatCurrency, formatDate } from '@/lib/utils'
 
 import { PAYMENTS_STATUS_LABELS, STATUS_VARIANTS } from '../constants'
@@ -19,7 +22,15 @@ const columnsDefinition: PaymentColumn[] = [
     accessorKey: 'order_id',
     header: 'Orden ID',
     cell: ({ row }) => (
-      <div className="font-mono text-xs">{row.getValue('order_id')}</div>
+      <Button variant="link" className="p-0" asChild>
+        <Link
+          href={`ordenes?page=1&status=pending%2Cprocessing%2Cshipped%2Cdelivered%2Ccancelled&search=${row.getValue(
+            'order_id'
+          )}`}
+        >
+          {row.getValue('order_id')}
+        </Link>
+      </Button>
     )
   },
   {

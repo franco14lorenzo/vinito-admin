@@ -116,8 +116,19 @@ async function getAccommodations(
   })
 
   if (params.search) {
-    const searchCondition = `name.ilike.%${params.search}%,address.ilike.%${params.search}%`
-    countQuery = countQuery.or(searchCondition)
+    const searchTerm = params.search.trim()
+
+    const isUUID =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        searchTerm
+      )
+
+    if (isUUID) {
+      countQuery = countQuery.eq('id', searchTerm)
+    } else {
+      const searchCondition = `name.ilike.%${params.search}%,address.ilike.%${params.search}%`
+      countQuery = countQuery.or(searchCondition)
+    }
   }
 
   const { count: totalRows, error: countError } = await countQuery
@@ -149,8 +160,19 @@ async function getAccommodations(
   })
 
   if (params.search) {
-    const searchCondition = `name.ilike.%${params.search}%,address.ilike.%${params.search}%`
-    query = query.or(searchCondition)
+    const searchTerm = params.search.trim()
+
+    const isUUID =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        searchTerm
+      )
+
+    if (isUUID) {
+      query = query.eq('id', searchTerm)
+    } else {
+      const searchCondition = `name.ilike.%${params.search}%,address.ilike.%${params.search}%`
+      query = query.or(searchCondition)
+    }
   }
 
   const from = (page - 1) * perPage
