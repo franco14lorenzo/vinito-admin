@@ -67,8 +67,6 @@ export async function updateOrderStatus(
 
     if (error) throw new Error(error.message)
 
-    revalidateStoreTag('orders')
-
     return { success: true }
   } catch (error) {
     console.error('Error updating Order status:', error)
@@ -95,8 +93,6 @@ export async function updateOrder(
 
     if (error) throw new Error(error.message)
 
-    revalidateStoreTag('orders')
-
     return { success: true }
   } catch (error) {
     console.error('Error updating Order:', error)
@@ -110,6 +106,7 @@ type TastingWithWines = {
     id: number
     stock: number
     sold: number
+    slug: string
     wines?: {
       wine: {
         id: number
@@ -160,7 +157,8 @@ async function updateTastingStock(
   tastingId: number,
   stockChange: number,
   soldChange: number,
-  adminId: number
+  adminId: number,
+  slug: string
 ) {
   const supabase = await createClient()
 
@@ -176,6 +174,9 @@ async function updateTastingStock(
       .eq('id', tastingId)
 
     if (error) throw new Error(error.message)
+
+    revalidateStoreTag('tastings')
+    revalidateStoreTag(slug)
   } catch (error) {
     console.error('Error updating tasting stock:', error)
     throw error
@@ -277,7 +278,8 @@ export async function cancelOrder(
         tasting.id,
         newTastingStock,
         newTastingSold,
-        adminId
+        adminId,
+        tasting.slug
       )
 
       if (tasting.wines) {
@@ -301,6 +303,7 @@ export async function cancelOrder(
           )
         }
       }
+      revalidateStoreTag(tasting.slug)
     }
 
     if (payment && payment.status === 'completed' && shouldRefundPayment) {
@@ -318,7 +321,7 @@ export async function cancelOrder(
 
     if (error) throw new Error(error.message)
 
-    revalidateStoreTag('orders')
+    revalidateStoreTag('tastings')
 
     return { success: true }
   } catch (error) {

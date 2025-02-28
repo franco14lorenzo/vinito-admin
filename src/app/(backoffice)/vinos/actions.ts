@@ -1,7 +1,6 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { revalidateStoreTag } from '@/lib/utils'
 
 export async function getWineById(id: string) {
   const supabase = await createClient()
@@ -53,8 +52,6 @@ export async function createWine(data: WineData, adminId: number) {
 
     if (error) throw new Error(error.message)
 
-    revalidateStoreTag('wines')
-
     return { success: true }
   } catch (error) {
     console.error('Error creating Wine:', error)
@@ -78,8 +75,6 @@ export async function updateWine(id: string, data: WineData, adminId: number) {
 
     if (error) throw new Error(error.message)
 
-    revalidateStoreTag('wines')
-
     return { success: true }
   } catch (error) {
     console.error('Error updating Wine:', error)
@@ -101,8 +96,6 @@ export async function deleteWine(id: number, adminId: number) {
       .eq('id', id)
 
     if (error) throw new Error(error.message)
-
-    revalidateStoreTag('wines')
 
     return { success: true }
   } catch (error) {
@@ -201,8 +194,6 @@ export async function createStockMovement(
       .select()
 
     if (movementError) throw new Error(movementError.message)
-
-    revalidateStoreTag('wines')
 
     return { success: true }
   } catch (error) {

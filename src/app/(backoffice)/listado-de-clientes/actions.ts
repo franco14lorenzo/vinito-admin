@@ -1,7 +1,6 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { revalidateStoreTag } from '@/lib/utils'
 
 export async function getCustomerById(id: string) {
   const supabase = await createClient()
@@ -46,8 +45,6 @@ export async function createCustomer(data: CustomerData, adminId: number) {
 
     if (error) throw new Error(error.message)
 
-    revalidateStoreTag('customers')
-
     return { success: true }
   } catch (error) {
     console.error('Error creating customer:', error)
@@ -75,8 +72,6 @@ export async function updateCustomer(
 
     if (error) throw new Error(error.message)
 
-    revalidateStoreTag('customers')
-
     return { success: true }
   } catch (error) {
     console.error('Error updating customer:', error)
@@ -91,8 +86,6 @@ export async function deleteCustomer(id: string) {
     const { error } = await supabase.from('customers').delete().eq('id', id)
 
     if (error) throw new Error(error.message)
-
-    revalidateStoreTag('customers')
 
     return { success: true }
   } catch (error) {

@@ -1,7 +1,6 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { revalidateStoreTag } from '@/lib/utils'
 
 import { Payment } from './types'
 
@@ -41,8 +40,6 @@ export async function updatePayment(id: string, data: Partial<Payment>) {
     const { error } = await supabase.from('payments').update(data).eq('id', id)
 
     if (error) throw new Error(error.message)
-
-    revalidateStoreTag('payments')
 
     return { success: true }
   } catch (error) {

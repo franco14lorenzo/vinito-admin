@@ -143,7 +143,7 @@ export async function updateTasting(
     }
 
     revalidateStoreTag('tastings')
-
+    revalidateStoreTag(slug)
     return { success: true }
   } catch (error) {
     console.error('Error updating Tasting:', error)
@@ -207,7 +207,7 @@ export async function deleteTasting(id: number, adminId: number) {
     if (error) throw new Error(error.message)
 
     revalidateStoreTag('tastings')
-
+    revalidateStoreTag(tasting.slug)
     return { success: true }
   } catch (error) {
     console.error('Error deleting Tasting:', error)
@@ -321,6 +321,7 @@ export async function updateTastingStock(
     if (updateTastingError) throw new Error(updateTastingError.message)
 
     revalidateStoreTag('tastings')
+    revalidateStoreTag(tasting.slug)
 
     return { success: true }
   } catch (error) {
