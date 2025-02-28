@@ -63,7 +63,10 @@ export function capitalize(str: string): string {
 }
 
 export function formatDate(dateString: string): string {
-  const date = new Date(dateString + 'T12:00:00Z')
+  const date = dateString.includes('T')
+    ? new Date(dateString)
+    : new Date(dateString + 'T12:00:00Z')
+
   return date.toLocaleString('es-AR', {
     day: '2-digit',
     month: '2-digit',
