@@ -29,7 +29,7 @@ const environments = [
     name: 'Staging',
     logo: GrapeIcon,
     environment: 'staging',
-    url: 'https://admin-staging.vinito.store'
+    url: 'https://staging-admin.vinito.store'
   },
   {
     name: 'Local',

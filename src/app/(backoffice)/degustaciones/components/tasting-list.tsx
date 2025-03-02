@@ -28,9 +28,17 @@ export function TastingList({ tastings, adminId }: TastingListProps) {
   return (
     <div className="min-h-[calc(100vh-80px)] rounded-2xl bg-gray-50 p-6">
       <div className="grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] gap-6">
-        {filteredTastings.map((tasting) => (
-          <TastingCard key={tasting.id} tasting={tasting} adminId={adminId} />
-        ))}
+        {filteredTastings.length ? (
+          filteredTastings.map((tasting) => (
+            <TastingCard key={tasting.id} tasting={tasting} adminId={adminId} />
+          ))
+        ) : (
+          <div className="col-span-full flex h-full items-center justify-center">
+            <p className="text-sm text-gray-500">
+              No se encontraron degustaciones
+            </p>
+          </div>
+        )}
       </div>
     </div>
   )
