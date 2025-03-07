@@ -19,7 +19,8 @@ export default async function ContactsPage({
     visibleColumns: awaitedSearchParams.columns
       ? (awaitedSearchParams.columns as string).split(',').filter(Boolean)
       : DEFAULT_COLUMNS,
-    search: (awaitedSearchParams.search as string) || ''
+    search: (awaitedSearchParams.search as string) || '',
+    contactId: Number(awaitedSearchParams.contact_id as string) || undefined
   }
 
   const { data, error, count } = await getContacts(
@@ -60,7 +61,7 @@ async function getContacts(
   params: ContactParams = {},
   visibleColumns: string[]
 ) {
-  const { page = 1, perPage = 10, orderBy = DEFAULT_ORDER } = params
+  const { page = 1, perPage = 10, orderBy = DEFAULT_ORDER, contactId } = params
 
   const supabase = await createClient()
 
@@ -69,7 +70,10 @@ async function getContacts(
     .select('id', { count: 'exact', head: true })
     .neq('status', 'deleted')
 
-  if (params.search) {
+  // If contact_id is provided, filter by it
+  if (contactId) {
+    countQuery = countQuery.eq('id', contactId)
+  } else if (params.search) {
     countQuery = countQuery.or(
       `name.ilike.%${params.search}%,email.ilike.%${params.search}%,message.ilike.%${params.search}%`
     )
@@ -96,7 +100,10 @@ async function getContacts(
     .select(queryColumns)
     .neq('status', 'deleted')
 
-  if (params.search) {
+  // If contact_id is provided, filter by it
+  if (contactId) {
+    query = query.eq('id', contactId)
+  } else if (params.search) {
     query = query.or(
       `name.ilike.%${params.search}%,email.ilike.%${params.search}%,message.ilike.%${params.search}%`
     )

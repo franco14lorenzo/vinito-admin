@@ -23,4 +23,5 @@ export interface ContactParams {
   }
   visibleColumns?: string[]
   search?: string
+  contactId?: number
 }

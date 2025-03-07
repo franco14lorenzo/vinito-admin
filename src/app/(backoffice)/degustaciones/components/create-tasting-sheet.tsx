@@ -10,6 +10,7 @@ import { toast } from 'sonner'
 import * as z from 'zod'
 
 import Image from 'next/image'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
 import {
@@ -315,9 +316,18 @@ export function CreateTastingSheet({ adminId }: CreateTastingSheetProps) {
                                 )}
                                 <div className="flex min-w-0 flex-1 flex-col">
                                   <div className="flex items-center justify-between gap-2">
-                                    <span className="truncate text-sm font-medium">
-                                      {wine.name}
-                                    </span>
+                                    <Button
+                                      variant="link"
+                                      className="h-fit truncate p-0 text-sm font-medium"
+                                      asChild
+                                    >
+                                      <Link
+                                        href={`/vinos/?wine_id=${wine.id}&page=1&status=active%2Cinactive%2Cdraft`}
+                                      >
+                                        {wine.name}
+                                      </Link>
+                                    </Button>
+
                                     {wine.cost_usd_blue && (
                                       <span className="shrink-0 text-xs font-semibold">
                                         USD{' '}

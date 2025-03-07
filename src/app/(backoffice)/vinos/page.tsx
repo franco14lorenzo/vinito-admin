@@ -45,7 +45,8 @@ export default async function WinesPage({
     visibleColumns: awaitedSearchParams.columns
       ? (awaitedSearchParams.columns as string).split(',').filter(Boolean)
       : DEFAULT_COLUMNS,
-    search: (awaitedSearchParams.search as string) || ''
+    search: (awaitedSearchParams.search as string) || '',
+    wineId: Number(awaitedSearchParams.wine_id) || undefined
   }
 
   const { data, error, count } = await getWines(params)
@@ -89,7 +90,8 @@ async function getWines(params: WineParams = {}) {
     page = 1,
     perPage = 10,
     orderBy = DEFAULT_ORDER,
-    filters = { status: FILTERS[0].defaultSelected, year: undefined }
+    filters = { status: FILTERS[0].defaultSelected, year: undefined },
+    wineId
   } = params
 
   const supabase = await createClient()
@@ -98,28 +100,32 @@ async function getWines(params: WineParams = {}) {
     .from('wines')
     .select('id', { count: 'exact', head: true })
 
-  const { year: yearFilter, ...otherFilters } = filters
-  if (yearFilter !== undefined) {
-    countQuery.eq('year', yearFilter)
-  }
-
-  Object.entries(otherFilters).forEach(([key, value]) => {
-    if (value !== undefined) {
-      if (key === 'status' && Array.isArray(value)) {
-        countQuery.in(key, value)
-      } else {
-        countQuery.eq(key, value)
-      }
+  if (wineId) {
+    countQuery = countQuery.eq('id', wineId)
+  } else {
+    const { year: yearFilter, ...otherFilters } = filters
+    if (yearFilter !== undefined) {
+      countQuery.eq('year', yearFilter)
     }
-  })
 
-  if (params.search) {
-    const searchInt = parseInt(params.search, 10)
-    const searchCondition = `name.ilike.%${params.search}%,winery.ilike.%${params.search}%`
-    if (!isNaN(searchInt)) {
-      countQuery = countQuery.or(`${searchCondition},year.eq.${searchInt}`)
-    } else {
-      countQuery = countQuery.or(searchCondition)
+    Object.entries(otherFilters).forEach(([key, value]) => {
+      if (value !== undefined) {
+        if (key === 'status' && Array.isArray(value)) {
+          countQuery.in(key, value)
+        } else {
+          countQuery.eq(key, value)
+        }
+      }
+    })
+
+    if (params.search) {
+      const searchInt = parseInt(params.search, 10)
+      const searchCondition = `name.ilike.%${params.search}%,winery.ilike.%${params.search}%`
+      if (!isNaN(searchInt)) {
+        countQuery = countQuery.or(`${searchCondition},year.eq.${searchInt}`)
+      } else {
+        countQuery = countQuery.or(searchCondition)
+      }
     }
   }
 
@@ -135,27 +141,31 @@ async function getWines(params: WineParams = {}) {
 
   let query = supabase.from('wines').select(REQUIRED_COLUMNS.join(','))
 
-  if (filters.year !== undefined) {
-    query = query.eq('year', filters.year)
-  }
-
-  Object.entries(filters).forEach(([key, value]) => {
-    if (value !== undefined && key !== 'year') {
-      if (key === 'status' && Array.isArray(value)) {
-        query = query.in(key, value)
-      } else {
-        query = query.eq(key, value)
-      }
+  if (wineId) {
+    query = query.eq('id', wineId)
+  } else {
+    if (filters.year !== undefined) {
+      query = query.eq('year', filters.year)
     }
-  })
 
-  if (params.search) {
-    const searchInt = parseInt(params.search, 10)
-    const searchCondition = `name.ilike.%${params.search}%,winery.ilike.%${params.search}%`
-    if (!isNaN(searchInt)) {
-      query = query.or(`${searchCondition},year.eq.${searchInt}`)
-    } else {
-      query = query.or(searchCondition)
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && key !== 'year') {
+        if (key === 'status' && Array.isArray(value)) {
+          query = query.in(key, value)
+        } else {
+          query = query.eq(key, value)
+        }
+      }
+    })
+
+    if (params.search) {
+      const searchInt = parseInt(params.search, 10)
+      const searchCondition = `name.ilike.%${params.search}%,winery.ilike.%${params.search}%`
+      if (!isNaN(searchInt)) {
+        query = query.or(`${searchCondition},year.eq.${searchInt}`)
+      } else {
+        query = query.or(searchCondition)
+      }
     }
   }
 
