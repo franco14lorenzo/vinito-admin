@@ -13,7 +13,6 @@ import {
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 
-import { TableActionsDropdown } from '@/components/blocks/table/table-actions-dropdown'
 import { TableContent } from '@/components/blocks/table/table-content'
 import { TableControls } from '@/components/blocks/table/table-controls'
 import { TablePagination } from '@/components/blocks/table/table-pagination'
@@ -23,19 +22,22 @@ import { Payment } from '../types'
 
 import { ColumnsDefinition, PaymentColumn } from './columns'
 import { useEditPayment } from './edit-payment-context'
+import { TableActionsDropdown } from './table-actions-dropdown'
 
 interface DataTableProps {
   columns: ColumnsDefinition
   data: Payment[]
   pageCount: number
   totalRecords?: number
+  adminId?: string
 }
 
 export function DataTable({
   columns,
   data,
   pageCount,
-  totalRecords
+  totalRecords,
+  adminId
 }: DataTableProps) {
   const router = useRouter()
   const pathname = usePathname()
@@ -67,10 +69,10 @@ export function DataTable({
         columns.forEach((column: PaymentColumn) => {
           const columnId = column.id ?? column.accessorKey ?? ''
 
-          if (['actions'].includes(columnId)) {
-            visibilityState[columnId] = false
-          } else {
+          if (columnId === 'actions') {
             visibilityState[columnId] = true
+          } else {
+            visibilityState[columnId] = !['actions'].includes(columnId)
           }
         })
       }
@@ -117,8 +119,11 @@ export function DataTable({
             const payment = row.original as Payment
             return (
               <TableActionsDropdown
-                id={payment.id}
+                id={String(payment.id)}
+                status={payment.status}
+                adminId={Number(adminId)}
                 onEdit={() => handleEdit(payment.id)}
+                onStatusChange={() => router.refresh()}
               />
             )
           }

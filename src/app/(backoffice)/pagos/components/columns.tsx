@@ -105,6 +105,8 @@ const columnsDefinition: PaymentColumn[] = [
   },
   {
     id: 'actions',
+    header: '',
+    cell: () => null,
     enableHiding: false
   }
 ]

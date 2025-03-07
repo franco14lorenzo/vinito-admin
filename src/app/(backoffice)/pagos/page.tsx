@@ -63,6 +63,7 @@ export default async function PaymentsPage({
               data={data || []}
               pageCount={pageCount}
               totalRecords={count || 0}
+              adminId={session?.user?.id}
             />
           </div>
         </div>

@@ -1,7 +1,7 @@
 export type PaymentStatus = 'pending' | 'completed' | 'failed' | 'refunded'
 
 export interface Payment {
-  id: number
+  id: number | string
   order_id: string
   payment_method_id: number
   amount: number
@@ -10,6 +10,10 @@ export interface Payment {
   updated_at: string
   created_by: number | null
   updated_by: number | null
+  payment_methods?: {
+    id: number
+    name: string
+  }
   admin_created?: {
     name: string
     surname: string

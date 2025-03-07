@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 
-import { Payment } from './types'
+import { Payment, PaymentStatus } from './types'
 
 export async function getPaymentById(id: string) {
   const supabase = await createClient()
@@ -33,7 +33,10 @@ export async function getPaymentById(id: string) {
   }
 }
 
-export async function updatePayment(id: string, data: Partial<Payment>) {
+export async function updatePayment(
+  id: string,
+  data: Partial<Omit<Payment, 'id'>>
+) {
   const supabase = await createClient()
 
   try {
@@ -46,4 +49,16 @@ export async function updatePayment(id: string, data: Partial<Payment>) {
     console.error('Error updating payment:', error)
     throw error
   }
+}
+
+export async function updatePaymentStatus(
+  id: string,
+  status: PaymentStatus,
+  adminId: number
+) {
+  return updatePayment(id, {
+    status,
+    updated_by: adminId,
+    updated_at: new Date().toISOString()
+  })
 }
