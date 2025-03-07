@@ -24,6 +24,7 @@ export interface WineParams {
   edit?: string
   page?: number
   perPage?: number
+  wineId?: number
   orderBy?: {
     column: string
     ascending?: boolean

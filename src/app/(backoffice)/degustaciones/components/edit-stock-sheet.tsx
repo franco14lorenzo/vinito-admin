@@ -6,6 +6,7 @@ import { BadgeAlert, ImageOff, Package2Icon, Zap } from 'lucide-react'
 import { toast } from 'sonner'
 
 import Image from 'next/image'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
 import { Button } from '@/components/ui/button'
@@ -235,7 +236,17 @@ export function EditStockSheet({
                                 )}
                                 <div className="flex flex-1 flex-col gap-1">
                                   <div className="flex items-center justify-between">
-                                    <p className="font-medium">{wine.name}</p>
+                                    <Button
+                                      variant="link"
+                                      className="h-fit p-0 font-medium"
+                                      asChild
+                                    >
+                                      <Link
+                                        href={`/vinos/?wine_id=${wine.id}&page=1&status=active%2Cinactive%2Cdraft`}
+                                      >
+                                        {wine.name}
+                                      </Link>
+                                    </Button>
                                     {isLimiting && (
                                       <BadgeAlert className="h-5 text-red-600" />
                                     )}

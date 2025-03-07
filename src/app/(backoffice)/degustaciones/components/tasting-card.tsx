@@ -13,6 +13,7 @@ import {
 import { toast } from 'sonner'
 
 import Image from 'next/image'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
 import { StatusBadge } from '@/components/status-badge'
@@ -180,9 +181,10 @@ export function TastingCard({
               <AccordionContent>
                 <div className="grid grid-cols-1 gap-2 pt-2">
                   {tasting.tasting_wines.map(({ wine }) => (
-                    <div
+                    <Link
                       key={wine.id}
-                      className="group flex items-center gap-2 rounded-md border bg-card/50 p-2 transition-colors hover:bg-accent/50"
+                      href={`/vinos/?wine_id=${wine.id}&page=1&status=active%2Cinactive%2Cdraft`}
+                      className="group flex items-center gap-2 rounded-md border bg-card/50 p-2 transition-colors hover:cursor-pointer hover:bg-accent/50"
                     >
                       {wine.image ? (
                         <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-md">
@@ -211,7 +213,7 @@ export function TastingCard({
                           <span className="shrink-0">{wine.year}</span>
                         </div>
                       </div>
-                    </div>
+                    </Link>
                   ))}
                 </div>
               </AccordionContent>
