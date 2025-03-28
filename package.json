@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --port 3001",
+    "dev": "next dev --turbopack --port 3001",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -33,12 +33,12 @@
     "clsx": "^2.1.1",
     "cmdk": "1.0.0",
     "lucide-react": "^0.460.0",
-    "next": "15.0.3",
+    "next": "15.2.4",
     "next-auth": "5.0.0-beta.25",
     "next-themes": "^0.4.3",
     "qrcode": "^1.5.4",
-    "react": "19.0.0-rc-66855b96-20241106",
-    "react-dom": "19.0.0-rc-66855b96-20241106",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
     "react-hook-form": "^7.53.2",
     "sonner": "^1.7.0",
     "tailwind-merge": "^2.5.4",
@@ -48,11 +48,11 @@
   "devDependencies": {
     "@types/node": "^20",
     "@types/qrcode": "^1.5.5",
-    "@types/react": "^18",
-    "@types/react-dom": "^18",
+    "@types/react": "19.0.12",
+    "@types/react-dom": "19.0.4",
     "@typescript-eslint/eslint-plugin": "^6.7.0",
     "eslint": "^8",
-    "eslint-config-next": "15.0.3",
+    "eslint-config-next": "15.2.4",
     "eslint-config-prettier": "^9.1.0",
     "eslint-config-standard": "^17.1.0",
     "eslint-plugin-import": "^2.25.2",
@@ -66,5 +66,11 @@
     "prettier-plugin-tailwindcss": "^0.2.8",
     "tailwindcss": "^3.4.1",
     "typescript": "^5"
+  },
+  "pnpm": {
+    "overrides": {
+      "@types/react": "19.0.12",
+      "@types/react-dom": "19.0.4"
+    }
   }
 }
