@@ -64,7 +64,7 @@ export default async function AccommodationsPage({
 
   return (
     <CreateAccommodationProvider>
-      <div className="flex h-[calc(100dvh-80px)] w-full flex-col gap-4 p-4">
+      <div className={`flex h-[calc(100dvh-80px)] w-full flex-col gap-4 p-4`}>
         <div className="flex-none">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-bold tracking-tight">Alojamientos</h2>
