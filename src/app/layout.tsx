@@ -1,7 +1,10 @@
 import type { Metadata } from 'next'
+import { Kalnia } from 'next/font/google'
 import localFont from 'next/font/local'
 
 import './globals.css'
+
+const kalnia = Kalnia({ subsets: ['latin'], variable: '--font-kalnia' })
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -25,7 +28,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="es">
+    <html lang="es" className={`${kalnia.variable}`}>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

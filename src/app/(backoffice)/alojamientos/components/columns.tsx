@@ -1,8 +1,9 @@
 'use client'
 
 import { ColumnDef } from '@tanstack/react-table'
-import { ExternalLink, MapPin } from 'lucide-react'
+import { MapPin, Scan } from 'lucide-react'
 
+import { QRCodeModal } from '@/app/(backoffice)/alojamientos/components/qr-code-modal'
 import type { Accommodation } from '@/app/(backoffice)/alojamientos/types'
 import SortableHeader from '@/components/blocks/table/sorteable-header-table'
 import { StatusBadge } from '@/components/status-badge'
@@ -75,33 +76,7 @@ const columnsDefinition: AccommodationColumn[] = [
       )
     }
   },
-  {
-    id: 'qr_code',
-    accessorKey: 'qr_code',
-    header: () => <div className="px-4">QR</div>,
-    cell: ({ row }) => {
-      const qrCode = row.getValue('qr_code')
-      return qrCode ? (
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-2" asChild>
-                <a target="_blank" href={qrCode as string}>
-                  <ExternalLink className="h-4 w-4" />
-                  Ver QR
-                </a>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Abrir código QR en nueva pestaña</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      ) : (
-        <span className="text-sm text-muted-foreground">No disponible</span>
-      )
-    }
-  },
+
   {
     id: 'status',
     accessorKey: 'status',
@@ -131,11 +106,37 @@ const columnsDefinition: AccommodationColumn[] = [
     )
   },
   {
+    id: 'qr_code',
+    accessorKey: 'qr_code',
+    header: () => <div className="px-4">QR</div>,
+    cell: ({ row }) => {
+      const qrCode = row.getValue('qr_code')
+      return qrCode ? (
+        <QRCodeModal
+          qrCodeUrl={qrCode as string}
+          businessName={row.original.name}
+          trigger={
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              disabled={!qrCode}
+            >
+              <Scan className="h-4 w-4" />
+              Ver QR
+            </Button>
+          }
+        />
+      ) : (
+        <span className="text-sm text-muted-foreground">No disponible</span>
+      )
+    }
+  },
+  {
     id: 'actions',
     enableHiding: false
   }
 ]
 
-export const columns = columnsDefinition
-
 export type ColumnsDefinition = typeof columnsDefinition
+export const columns = columnsDefinition
