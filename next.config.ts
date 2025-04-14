@@ -8,6 +8,10 @@ const nextConfig: NextConfig = {
         hostname: 'qapuykiljzcmeyhisnuq.supabase.co'
       },
       {
+        protocol: 'https',
+        hostname: 'tfrmrnvcrniczvmujirf.supabase.co'
+      },
+      {
         protocol: 'http',
         hostname: '127.0.0.1'
       }
